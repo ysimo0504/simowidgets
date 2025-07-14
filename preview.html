@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simo Widgets</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica,
+          "Apple Color Emoji", Arial, sans-serif;
+        background-color: #f8f9fa;
+        color: #333;
+        line-height: 1.5;
+      }
+
+      .header {
+        background: white;
+        border-bottom: 1px solid #e1e5e9;
+        padding: 16px 24px;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+
+      .header-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .logo {
+        width: 32px;
+        height: 32px;
+        background: #000;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 18px;
+      }
+
+      .brand-name {
+        font-size: 18px;
+        font-weight: 600;
+        color: #000;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 40px 24px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 24px;
+        margin-bottom: 48px;
+      }
+
+      .card {
+        background: white;
+        border: 1px solid #e1e5e9;
+        border-radius: 8px;
+        overflow: hidden;
+        transition: all 0.2s ease;
+        position: relative;
+        width: 100%;
+        max-width: 400px;
+        margin-left: 0;
+      }
+
+      .card:hover {
+        border-color: #d1d5db;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      }
+
+      .card-image {
+        height: 200px;
+        background: #f8f9fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-bottom: 1px solid #e1e5e9;
+        position: relative;
+      }
+
+      .card-image.exchange {
+        width: 100%;
+        height: 180px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #ccc;
+        border-radius: 12px;
+        background: #fff;
+        color: #000;
+      }
+
+      .demo-content {
+        font-size: 14px;
+        color: #666;
+        text-align: center;
+      }
+
+      .exchange-demo {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 32px;
+        font-family: monospace;
+        font-size: 20px;
+        font-weight: bold;
+        color: #000;
+      }
+
+      .card-content {
+        padding: 20px;
+      }
+
+      .card-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #000;
+        margin-bottom: 4px;
+      }
+
+      .card-description {
+        font-size: 14px;
+        color: #666;
+        margin-bottom: 16px;
+      }
+
+      .card-price {
+        font-size: 16px;
+        font-weight: 600;
+        color: #000;
+        margin-bottom: 12px;
+      }
+
+      .card-button {
+        width: 100%;
+        background: #000;
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+      }
+
+      .card-button:hover {
+        background: #333;
+      }
+
+      .card-button:disabled {
+        background: #f3f4f6;
+        color: #9ca3af;
+        cursor: not-allowed;
+      }
+
+      .footer {
+        text-align: center;
+        padding: 24px;
+        color: #666;
+        font-size: 14px;
+        border-top: 1px solid #e1e5e9;
+        background: white;
+      }
+
+      @media (max-width: 768px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+
+        .container {
+          padding: 24px 16px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="header">
+      <div class="header-content">
+        <div class="logo">🧩</div>
+        <div class="brand-name">Simo Widgets</div>
+      </div>
+    </header>
+
+    <div class="container">
+      <div class="grid">
+        <!-- 汇率换算器 -->
+        <div class="card">
+          <div class="card-image exchange">
+            <div
+              style="
+                display: flex;
+                width: 100%;
+                justify-content: center;
+                align-items: center;
+                gap: 24px;
+              "
+            >
+              <div
+                style="
+                  display: flex;
+                  align-items: center;
+                  background: #f6f7fa;
+                  border-radius: 10px;
+                  overflow: hidden;
+                  padding: 8px 12px;
+                "
+              >
+                <img
+                  src="https://flagcdn.com/us.svg"
+                  alt="US"
+                  style="width: 24px; height: 16px; margin-right: 8px"
+                />
+                <div style="display: flex; flex-direction: column">
+                  <select
+                    id="from-currency"
+                    style="
+                      font-weight: 600;
+                      font-size: 14px;
+                      border: none;
+                      background: transparent;
+                      outline: none;
+                    "
+                  >
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                    <option value="JPY">JPY</option>
+                    <option value="CNY">CNY</option>
+                  </select>
+                </div>
+                <input
+                  type="text"
+                  value="1"
+                  style="
+                    margin-left: 16px;
+                    font-size: 16px;
+                    width: 60px;
+                    text-align: right;
+                    border: none;
+                    background: transparent;
+                    outline: none;
+                  "
+                />
+              </div>
+              <span style="font-size: 18px; color: #999">⇄</span>
+              <div
+                style="
+                  display: flex;
+                  align-items: center;
+                  background: #f6f7fa;
+                  border-radius: 10px;
+                  overflow: hidden;
+                  padding: 8px 12px;
+                "
+              >
+                <img
+                  src="https://flagcdn.com/cn.svg"
+                  alt="CNY"
+                  style="width: 24px; height: 16px; margin-right: 8px"
+                />
+                <div style="display: flex; flex-direction: column">
+                  <select
+                    id="to-currency"
+                    style="
+                      font-weight: 600;
+                      font-size: 14px;
+                      border: none;
+                      background: transparent;
+                      outline: none;
+                    "
+                  >
+                    <option value="CNY">CNY</option>
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                    <option value="JPY">JPY</option>
+                  </select>
+                </div>
+                <span
+                  id="converted-value"
+                  style="margin-left: 16px; font-size: 16px; font-weight: bold"
+                  >7.1676</span
+                >
+              </div>
+            </div>
+          </div>
+          <div class="card-content">
+            <div class="card-description">
+              A simple, embeddable currency converter for your workspace
+            </div>
+            <button class="card-button">Copy Embed Link</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <p>© 2024 Simo Widgets</p>
+    </footer>
+
+    <script>
+      // Simple interaction
+      document.querySelectorAll(".card-button").forEach((button) => {
+        button.addEventListener("click", function () {
+          if (!this.disabled) {
+            // Simulate copy functionality
+            this.textContent = "Copied!";
+            setTimeout(() => {
+              this.textContent = "Copy Embed Link";
+            }, 2000);
+          }
+        });
+      });
+
+      // Add hover effect
+      document.querySelectorAll(".card").forEach((card) => {
+        card.addEventListener("mouseenter", function () {
+          this.style.transform = "translateY(-2px)";
+        });
+
+        card.addEventListener("mouseleave", function () {
+          this.style.transform = "translateY(0)";
+        });
+      });
+
+      function updateRate() {
+        const amount = parseFloat(document.querySelector("input").value) || 1;
+        const from = document.getElementById("from-currency").value;
+        const to = document.getElementById("to-currency").value;
+        fetch(
+          `https://api.frankfurter.dev/latest?amount=${amount}&from=${from}&to=${to}`
+        )
+          .then((res) => res.json())
+          .then((data) => {
+            const rate = data.rates[to];
+            document.getElementById("converted-value").textContent =
+              rate.toFixed(4);
+          });
+      }
+
+      document
+        .getElementById("from-currency")
+        .addEventListener("change", updateRate);
+      document
+        .getElementById("to-currency")
+        .addEventListener("change", updateRate);
+      document.querySelector("input").addEventListener("input", updateRate);
+      window.addEventListener("DOMContentLoaded", updateRate);
+    </script>
+  </body>
+</html>
