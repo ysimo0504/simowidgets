@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 export default function Home() {
   const [amount, setAmount] = useState("1");
@@ -6,30 +6,86 @@ export default function Home() {
   const [toCurrency, setToCurrency] = useState("CNY");
   const [convertedValue, setConvertedValue] = useState("7.1676");
   const [isButtonCopied, setIsButtonCopied] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // 防抖函数
+  const debounce = (func: Function, delay: number) => {
+    let timeoutId: NodeJS.Timeout;
+    return (...args: any[]) => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => func.apply(null, args), delay);
+    };
+  };
 
   const updateRate = async () => {
     try {
+      setIsLoading(true);
       const numAmount = parseFloat(amount) || 1;
+
+      if (numAmount <= 0) {
+        setConvertedValue("0");
+        return;
+      }
+
       const response = await fetch(
-        `https://api.frankfurter.dev/latest?amount=${numAmount}&from=${fromCurrency}&to=${toCurrency}`
+        `https://api.frankfurter.dev/v1/latest?amount=${numAmount}&from=${fromCurrency}&to=${toCurrency}`
       );
+      console.log(response);
+      if (!response.ok) {
+        throw new Error("Failed to fetch exchange rate");
+      }
+
       const data = await response.json();
       const rate = data.rates[toCurrency];
-      setConvertedValue(rate.toFixed(4));
+
+      if (rate !== undefined) {
+        setConvertedValue(rate.toFixed(4));
+      }
     } catch (error) {
       console.error("Rate fetch error:", error);
+      setConvertedValue("Error");
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  // 创建防抖的 updateRate 函数
+  const debouncedUpdateRate = useCallback(debounce(updateRate, 300), [
+    amount,
+    fromCurrency,
+    toCurrency,
+  ]);
+
   useEffect(() => {
-    updateRate();
-  }, [amount, fromCurrency, toCurrency]);
+    debouncedUpdateRate();
+  }, [amount, fromCurrency, toCurrency, debouncedUpdateRate]);
 
   const handleCopyClick = () => {
     setIsButtonCopied(true);
     setTimeout(() => {
       setIsButtonCopied(false);
     }, 2000);
+  };
+
+  // 处理输入框变化
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+
+    // 只允许数字和小数点
+    if (value === "" || /^\d*\.?\d*$/.test(value)) {
+      setAmount(value);
+    }
+  };
+
+  // 处理输入框失焦
+  const handleAmountBlur = () => {
+    const numAmount = parseFloat(amount);
+    if (isNaN(numAmount) || numAmount <= 0) {
+      setAmount("1");
+    } else {
+      // 格式化数字，去掉多余的零
+      setAmount(numAmount.toString());
+    }
   };
 
   return (
@@ -211,6 +267,20 @@ export default function Home() {
           background: white;
         }
 
+        .loading {
+          color: #999;
+          font-style: italic;
+        }
+
+        .input-container {
+          position: relative;
+        }
+
+        .input-container input:focus {
+          outline: 2px solid #007bff;
+          outline-offset: 1px;
+        }
+
         @media (max-width: 768px) {
           .grid {
             grid-template-columns: 1fr;
@@ -280,20 +350,24 @@ export default function Home() {
                       <option value="CNY">CNY</option>
                     </select>
                   </div>
-                  <input
-                    type="text"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    style={{
-                      marginLeft: "16px",
-                      fontSize: "16px",
-                      width: "60px",
-                      textAlign: "right",
-                      border: "none",
-                      background: "transparent",
-                      outline: "none",
-                    }}
-                  />
+                  <div className="input-container">
+                    <input
+                      type="text"
+                      value={amount}
+                      onChange={handleAmountChange}
+                      onBlur={handleAmountBlur}
+                      placeholder="1"
+                      style={{
+                        marginLeft: "16px",
+                        fontSize: "16px",
+                        width: "60px",
+                        textAlign: "right",
+                        border: "none",
+                        background: "transparent",
+                        outline: "none",
+                      }}
+                    />
+                  </div>
                 </div>
                 <span style={{ fontSize: "18px", color: "#999" }}>⇄</span>
                 <div
@@ -339,8 +413,9 @@ export default function Home() {
                       fontSize: "16px",
                       fontWeight: "bold",
                     }}
+                    className={isLoading ? "loading" : ""}
                   >
-                    {convertedValue}
+                    {isLoading ? "..." : convertedValue}
                   </span>
                 </div>
               </div>
