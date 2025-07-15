@@ -1,75 +1,24 @@
 "use client";
-import { useEffect, useState } from "react";
-import { CurrencySelector } from "../components/CurrencyConverter";
+import { CurrencyConverter } from "../components/CurrencyConverter";
 
 export default function Exchange() {
-  const [rate, setRate] = useState<number | null>(null);
-  const [amount, setAmount] = useState(1);
-  const [fromCurrency, setFromCurrency] = useState("USD");
-  const [toCurrency, setToCurrency] = useState("JPY");
-  const [lastUpdated, setLastUpdated] = useState<string>("");
-
-  const currencies = [
-    "USD",
-    "EUR",
-    "JPY",
-    "CNY",
-    "GBP",
-    "AUD",
-    "CAD",
-    "CHF",
-    "KRW",
-  ];
-
-  useEffect(() => {
-    const fetchRate = async () => {
-      try {
-        const response = await fetch(
-          `https://api.frankfurter.dev/v1/latest?from=${fromCurrency}&to=${toCurrency}`
-        );
-        const data = await response.json();
-        setRate(data.rates[toCurrency]);
-        setLastUpdated(
-          new Date().toLocaleString("zh-CN", {
-            month: "2-digit",
-            day: "2-digit",
-            hour: "2-digit",
-            minute: "2-digit",
-          })
-        );
-      } catch (error) {
-        console.error("Failed to fetch exchange rate:", error);
-      }
-    };
-
-    fetchRate();
-  }, [fromCurrency, toCurrency]);
-
-  const handleAmountChange = (value: string) => {
-    const num = parseFloat(value);
-    if (!isNaN(num) && num >= 0) {
-      setAmount(num);
-    }
-  };
-
-  const getCurrencySymbol = (currency: string) => {
-    const symbols: { [key: string]: string } = {
-      USD: "$",
-      EUR: "€",
-      JPY: "¥",
-      CNY: "¥",
-      GBP: "£",
-      AUD: "A$",
-      CAD: "C$",
-      CHF: "Fr",
-      KRW: "₩",
-    };
-    return symbols[currency] || "";
-  };
-
   return (
     <>
       <style jsx global>{`
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+
+        body {
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica,
+            "Apple Color Emoji", Arial, sans-serif;
+          background-color: #f8f9fa;
+          color: #333;
+          line-height: 1.5;
+        }
+
         /* 自定义货币选择器样式 */
         .currency-selector {
           position: relative;
@@ -79,38 +28,38 @@ export default function Exchange() {
         .currency-selector-button {
           display: flex;
           align-items: center;
-          padding: 8px 12px;
-          background: white;
-          border: 1px solid #e1e5e9;
-          border-radius: 6px;
+          padding: 3px 6px;
+          background: transparent;
+          border: 1px solid transparent;
+          border-radius: 4px;
           cursor: pointer;
           transition: all 0.2s ease;
-          min-width: 120px;
+          min-width: 65px;
           justify-content: space-between;
         }
 
         .currency-selector-button:hover {
-          border-color: #d1d5db;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+          background: #f0f0f0;
+          border-color: #d0d0d0;
         }
 
         .currency-flag {
-          width: 20px;
-          height: 15px;
-          margin-right: 8px;
+          width: 18px;
+          height: 13px;
+          margin-right: 5px;
           border-radius: 2px;
         }
 
         .currency-code {
           font-weight: 600;
-          font-size: 14px;
+          font-size: 13px;
           color: #333;
         }
 
         .currency-arrow {
-          font-size: 10px;
+          font-size: 9px;
           color: #666;
-          margin-left: 6px;
+          margin-left: 3px;
         }
 
         .currency-selector-dropdown {
@@ -131,7 +80,7 @@ export default function Exchange() {
         .currency-option {
           display: flex;
           align-items: center;
-          padding: 8px 12px;
+          padding: 6px 10px;
           cursor: pointer;
           transition: background-color 0.2s ease;
           border-bottom: 1px solid #f0f0f0;
@@ -151,22 +100,85 @@ export default function Exchange() {
         }
 
         .currency-option .currency-flag {
-          width: 20px;
-          height: 15px;
-          margin-right: 8px;
+          width: 18px;
+          height: 13px;
+          margin-right: 6px;
         }
 
         .currency-option .currency-code {
           font-weight: 600;
-          font-size: 14px;
-          margin-right: 8px;
-          min-width: 35px;
+          font-size: 13px;
+          margin-right: 6px;
+          min-width: 32px;
         }
 
         .currency-option .currency-name {
-          font-size: 12px;
+          font-size: 11px;
           color: #666;
           flex: 1;
+        }
+
+        /* 输入框样式优化 */
+        .amount-input {
+          margin-left: 8px;
+          font-size: 15px;
+          font-weight: 500;
+          text-align: right;
+          border: none;
+          background: transparent;
+          outline: none;
+          min-width: 35px;
+          max-width: 70px;
+          padding: 2px 3px;
+          border-radius: 3px;
+          transition: all 0.2s ease;
+        }
+
+        .amount-input:focus {
+          background: white;
+          box-shadow: 0 0 0 2px #007bff;
+        }
+
+        .converted-amount-input {
+          margin-left: 8px;
+          font-size: 15px;
+          font-weight: 500;
+          text-align: right;
+          border: none;
+          background: transparent;
+          outline: none;
+          min-width: 35px;
+          max-width: 70px;
+          padding: 2px 3px;
+          border-radius: 3px;
+          transition: all 0.2s ease;
+          color: #333;
+        }
+
+        .converted-amount-input:focus {
+          background: white;
+          box-shadow: 0 0 0 2px #007bff;
+        }
+
+        .card-image.exchange {
+          width: 100%;
+          height: 160px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: 1px solid #e1e5e9;
+          border-radius: 12px;
+          background: #fff;
+          color: #000;
+          margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+          .amount-input,
+          .converted-amount-input {
+            max-width: 55px;
+            font-size: 14px;
+          }
         }
       `}</style>
 
@@ -175,76 +187,11 @@ export default function Exchange() {
           {/* Title */}
           <div className="text-center mb-8">
             <h1 className="text-lg font-medium text-black mb-1">💱 汇率换算</h1>
-            <p className="text-sm text-gray-600">
-              {fromCurrency} → {toCurrency}
-            </p>
+            <p className="text-sm text-gray-600">实时汇率转换</p>
           </div>
 
-          {/* Exchange Widget */}
-          <div className="border border-gray-200 bg-white">
-            <div className="p-6">
-              {/* From Currency Section */}
-              <div className="mb-6">
-                <label className="block text-sm text-gray-600 mb-2">
-                  源货币
-                </label>
-                <div className="flex items-center gap-4">
-                  <CurrencySelector
-                    value={fromCurrency}
-                    onChange={setFromCurrency}
-                    options={currencies}
-                  />
-                  <input
-                    type="number"
-                    value={amount}
-                    onChange={(e) => handleAmountChange(e.target.value)}
-                    className="flex-1 text-2xl font-mono border-none outline-none bg-transparent"
-                    placeholder="1.00"
-                    min="0"
-                    step="0.01"
-                  />
-                </div>
-                <div className="h-px bg-gray-200 mt-2"></div>
-              </div>
-
-              {/* Arrow */}
-              <div className="text-center mb-6">
-                <div className="text-gray-400">↓</div>
-              </div>
-
-              {/* To Currency Section */}
-              <div className="mb-6">
-                <label className="block text-sm text-gray-600 mb-2">
-                  目标货币
-                </label>
-                <div className="flex items-center gap-4">
-                  <CurrencySelector
-                    value={toCurrency}
-                    onChange={setToCurrency}
-                    options={currencies}
-                  />
-                  <div className="flex-1 text-2xl font-mono text-black">
-                    {rate
-                      ? `${getCurrencySymbol(toCurrency)}${(
-                          amount * rate
-                        ).toFixed(2)}`
-                      : "加载中..."}
-                  </div>
-                </div>
-                <div className="h-px bg-gray-200 mt-2"></div>
-              </div>
-
-              {/* Rate Info */}
-              {rate && (
-                <div className="text-xs text-gray-500 space-y-1">
-                  <div>
-                    汇率：1 {fromCurrency} = {rate.toFixed(4)} {toCurrency}
-                  </div>
-                  {lastUpdated && <div>更新：{lastUpdated}</div>}
-                </div>
-              )}
-            </div>
-          </div>
+          {/* Currency Converter */}
+          <CurrencyConverter />
 
           {/* Footer */}
           <div className="text-center mt-6">

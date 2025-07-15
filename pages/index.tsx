@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { CurrencyConverter } from "../components/CurrencyConverter";
+import { Card } from "../components/Card";
 
 export default function Home() {
   const [isButtonCopied, setIsButtonCopied] = useState(false);
@@ -330,17 +331,15 @@ export default function Home() {
       <div className="container">
         <div className="grid">
           {/* 汇率换算器 */}
-          <div className="card">
+          <Card
+            description="A simple, embeddable currency converter for your workspace"
+            buttonText="Copy Embed Link"
+            buttonClickedText="Copied!"
+            onButtonClick={handleCopyClick}
+            isButtonClicked={isButtonCopied}
+          >
             <CurrencyConverter />
-            <div className="card-content">
-              <div className="card-description">
-                A simple, embeddable currency converter for your workspace
-              </div>
-              <button className="card-button" onClick={handleCopyClick}>
-                {isButtonCopied ? "Copied!" : "Copy Embed Link"}
-              </button>
-            </div>
-          </div>
+          </Card>
 
           {/* 可以在这里添加更多的 card */}
         </div>
