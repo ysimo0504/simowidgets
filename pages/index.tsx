@@ -1,55 +1,35 @@
 import { useState, useEffect } from "react";
-import { Copy, Check } from "lucide-react";
-
-// Currency to country code mapping
-const currencyFlags: { [key: string]: string } = {
-  USD: "us",
-  EUR: "eu",
-  JPY: "jp",
-  CNY: "cn",
-  GBP: "gb",
-  AUD: "au",
-  CAD: "ca",
-  CHF: "ch",
-  KRW: "kr",
-};
 
 export default function Home() {
-  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [amount, setAmount] = useState("1");
   const [fromCurrency, setFromCurrency] = useState("USD");
   const [toCurrency, setToCurrency] = useState("CNY");
-  const [amount, setAmount] = useState(1);
   const [convertedValue, setConvertedValue] = useState("7.1676");
+  const [isButtonCopied, setIsButtonCopied] = useState(false);
 
   const updateRate = async () => {
     try {
+      const numAmount = parseFloat(amount) || 1;
       const response = await fetch(
-        `https://api.frankfurter.dev/latest?amount=${amount}&from=${fromCurrency}&to=${toCurrency}`
+        `https://api.frankfurter.dev/latest?amount=${numAmount}&from=${fromCurrency}&to=${toCurrency}`
       );
       const data = await response.json();
       const rate = data.rates[toCurrency];
       setConvertedValue(rate.toFixed(4));
     } catch (error) {
-      console.error("Failed to fetch exchange rate:", error);
+      console.error("Rate fetch error:", error);
     }
   };
 
   useEffect(() => {
     updateRate();
-  }, [fromCurrency, toCurrency, amount]);
+  }, [amount, fromCurrency, toCurrency]);
 
-  const handleCopy = async (url: string, index: number) => {
-    if (!url) return;
-    await navigator.clipboard.writeText(url);
-    setCopiedIndex(index);
-    setTimeout(() => setCopiedIndex(null), 2000);
-  };
-
-  const handleAmountChange = (value: string) => {
-    const num = parseFloat(value);
-    if (!isNaN(num) && num >= 0) {
-      setAmount(num);
-    }
+  const handleCopyClick = () => {
+    setIsButtonCopied(true);
+    setTimeout(() => {
+      setIsButtonCopied(false);
+    }, 2000);
   };
 
   return (
@@ -69,152 +49,317 @@ export default function Home() {
           line-height: 1.5;
         }
 
-        input[type="number"] {
-          -moz-appearance: textfield;
+        .header {
+          background: white;
+          border-bottom: 1px solid #e1e5e9;
+          padding: 16px 24px;
+          position: sticky;
+          top: 0;
+          z-index: 100;
         }
 
-        input[type="number"]::-webkit-outer-spin-button,
-        input[type="number"]::-webkit-inner-spin-button {
-          -webkit-appearance: none;
-          margin: 0;
+        .header-content {
+          max-width: 1200px;
+          margin: 0 auto;
+          display: flex;
+          align-items: center;
+          gap: 12px;
         }
 
-        ::selection {
-          background-color: #e5e5e5;
+        .logo {
+          width: 32px;
+          height: 32px;
+          background: #000;
+          border-radius: 6px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-weight: bold;
+          font-size: 18px;
         }
 
-        html {
-          scroll-behavior: smooth;
+        .brand-name {
+          font-size: 18px;
+          font-weight: 600;
+          color: #000;
+        }
+
+        .container {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 40px 24px;
+        }
+
+        .grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          gap: 24px;
+          margin-bottom: 48px;
+        }
+
+        .card {
+          background: white;
+          border: 1px solid #e1e5e9;
+          border-radius: 8px;
+          overflow: hidden;
+          transition: all 0.2s ease;
+          position: relative;
+          width: 100%;
+          max-width: 400px;
+          margin-left: 0;
+        }
+
+        .card:hover {
+          border-color: #d1d5db;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+          transform: translateY(-2px);
+        }
+
+        .card-image {
+          height: 200px;
+          background: #f8f9fa;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-bottom: 1px solid #e1e5e9;
+          position: relative;
+        }
+
+        .card-image.exchange {
+          width: 100%;
+          height: 180px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: 1px solid #ccc;
+          border-radius: 12px;
+          background: #fff;
+          color: #000;
+        }
+
+        .demo-content {
+          font-size: 14px;
+          color: #666;
+          text-align: center;
+        }
+
+        .exchange-demo {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 32px;
+          font-family: monospace;
+          font-size: 20px;
+          font-weight: bold;
+          color: #000;
+        }
+
+        .card-content {
+          padding: 20px;
+        }
+
+        .card-title {
+          font-size: 18px;
+          font-weight: 600;
+          color: #000;
+          margin-bottom: 4px;
+        }
+
+        .card-description {
+          font-size: 14px;
+          color: #666;
+          margin-bottom: 16px;
+        }
+
+        .card-price {
+          font-size: 16px;
+          font-weight: 600;
+          color: #000;
+          margin-bottom: 12px;
+        }
+
+        .card-button {
+          width: 100%;
+          background: #000;
+          color: white;
+          border: none;
+          padding: 10px 16px;
+          border-radius: 6px;
+          font-size: 14px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: background-color 0.2s ease;
+        }
+
+        .card-button:hover {
+          background: #333;
+        }
+
+        .card-button:disabled {
+          background: #f3f4f6;
+          color: #9ca3af;
+          cursor: not-allowed;
+        }
+
+        .footer {
+          text-align: center;
+          padding: 24px;
+          color: #666;
+          font-size: 14px;
+          border-top: 1px solid #e1e5e9;
+          background: white;
+        }
+
+        @media (max-width: 768px) {
+          .grid {
+            grid-template-columns: 1fr;
+          }
+
+          .container {
+            padding: 24px 16px;
+          }
         }
       `}</style>
 
-      <main className="min-h-screen bg-gray-50">
-        {/* Header */}
-        <header className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-100">
-          <div className="max-w-5xl mx-auto flex items-center gap-3">
-            <div className="w-8 h-8 bg-black rounded-md flex items-center justify-center text-white font-bold text-lg">
-              🧩
-            </div>
-            <div className="text-lg font-semibold text-black">Simo Widgets</div>
-          </div>
-        </header>
+      <header className="header">
+        <div className="header-content">
+          <div className="logo">🧩</div>
+          <div className="brand-name">Simo Widgets</div>
+        </div>
+      </header>
 
-        {/* Main Content */}
-        <div className="max-w-5xl mx-auto px-6 py-10">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Currency Converter Card */}
-            <div className="bg-white border border-gray-200 rounded-lg overflow-hidden transition-all duration-200 hover:border-gray-300 hover:shadow-lg hover:-translate-y-0.5 relative w-full max-w-md mx-auto">
-              {/* Card Image */}
+      <div className="container">
+        <div className="grid">
+          {/* 汇率换算器 */}
+          <div className="card">
+            <div className="card-image exchange">
               <div
-                className="w-full h-45 flex items-center justify-center border border-gray-300 rounded-xl bg-white mx-4 my-4"
-                style={{ height: "180px" }}
+                style={{
+                  display: "flex",
+                  width: "100%",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  gap: "24px",
+                }}
               >
-                <div className="flex w-full justify-center items-center gap-6">
-                  {/* From Currency */}
-                  <div className="flex items-center bg-gray-50 rounded-lg overflow-hidden px-3 py-2">
-                    <img
-                      src={`https://flagcdn.com/${
-                        currencyFlags[fromCurrency] || "us"
-                      }.svg`}
-                      alt={fromCurrency}
-                      className="w-6 h-4 mr-2"
-                    />
-                    <div className="flex flex-col">
-                      <select
-                        value={fromCurrency}
-                        onChange={(e) => setFromCurrency(e.target.value)}
-                        className="font-semibold text-sm border-none bg-transparent outline-none"
-                      >
-                        <option value="USD">USD</option>
-                        <option value="EUR">EUR</option>
-                        <option value="JPY">JPY</option>
-                        <option value="CNY">CNY</option>
-                        <option value="GBP">GBP</option>
-                        <option value="AUD">AUD</option>
-                        <option value="CAD">CAD</option>
-                        <option value="CHF">CHF</option>
-                        <option value="KRW">KRW</option>
-                      </select>
-                    </div>
-                    <input
-                      type="number"
-                      value={amount}
-                      onChange={(e) => handleAmountChange(e.target.value)}
-                      className="ml-4 text-base w-15 text-right border-none bg-transparent outline-none"
-                      min="0"
-                      step="0.01"
-                    />
-                  </div>
-
-                  {/* Exchange Icon */}
-                  <span className="text-lg text-gray-400">⇄</span>
-
-                  {/* To Currency */}
-                  <div className="flex items-center bg-gray-50 rounded-lg overflow-hidden px-3 py-2">
-                    <img
-                      src={`https://flagcdn.com/${
-                        currencyFlags[toCurrency] || "cn"
-                      }.svg`}
-                      alt={toCurrency}
-                      className="w-6 h-4 mr-2"
-                    />
-                    <div className="flex flex-col">
-                      <select
-                        value={toCurrency}
-                        onChange={(e) => setToCurrency(e.target.value)}
-                        className="font-semibold text-sm border-none bg-transparent outline-none"
-                      >
-                        <option value="CNY">CNY</option>
-                        <option value="USD">USD</option>
-                        <option value="EUR">EUR</option>
-                        <option value="JPY">JPY</option>
-                        <option value="GBP">GBP</option>
-                        <option value="AUD">AUD</option>
-                        <option value="CAD">CAD</option>
-                        <option value="CHF">CHF</option>
-                        <option value="KRW">KRW</option>
-                      </select>
-                    </div>
-                    <span className="ml-4 text-base font-bold">
-                      {convertedValue}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Card Content */}
-              <div className="p-5">
-                <div className="text-sm text-gray-600 mb-4">
-                  A simple, embeddable currency converter for your workspace
-                </div>
-                <button
-                  onClick={() =>
-                    handleCopy("https://widgets.heysimo.com/exchange", 0)
-                  }
-                  className="w-full bg-black text-white border-none px-4 py-2.5 rounded-md text-sm font-medium cursor-pointer transition-colors hover:bg-gray-800"
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    background: "#f6f7fa",
+                    borderRadius: "10px",
+                    overflow: "hidden",
+                    padding: "8px 12px",
+                  }}
                 >
-                  {copiedIndex === 0 ? (
-                    <>
-                      <Check size={14} className="inline mr-2" />
-                      Copied!
-                    </>
-                  ) : (
-                    <>
-                      <Copy size={14} className="inline mr-2" />
-                      Copy Embed Link
-                    </>
-                  )}
-                </button>
+                  <img
+                    src="https://flagcdn.com/us.svg"
+                    alt="US"
+                    style={{
+                      width: "24px",
+                      height: "16px",
+                      marginRight: "8px",
+                    }}
+                  />
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    <select
+                      value={fromCurrency}
+                      onChange={(e) => setFromCurrency(e.target.value)}
+                      style={{
+                        fontWeight: "600",
+                        fontSize: "14px",
+                        border: "none",
+                        background: "transparent",
+                        outline: "none",
+                      }}
+                    >
+                      <option value="USD">USD</option>
+                      <option value="EUR">EUR</option>
+                      <option value="JPY">JPY</option>
+                      <option value="CNY">CNY</option>
+                    </select>
+                  </div>
+                  <input
+                    type="text"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    style={{
+                      marginLeft: "16px",
+                      fontSize: "16px",
+                      width: "60px",
+                      textAlign: "right",
+                      border: "none",
+                      background: "transparent",
+                      outline: "none",
+                    }}
+                  />
+                </div>
+                <span style={{ fontSize: "18px", color: "#999" }}>⇄</span>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    background: "#f6f7fa",
+                    borderRadius: "10px",
+                    overflow: "hidden",
+                    padding: "8px 12px",
+                  }}
+                >
+                  <img
+                    src="https://flagcdn.com/cn.svg"
+                    alt="CNY"
+                    style={{
+                      width: "24px",
+                      height: "16px",
+                      marginRight: "8px",
+                    }}
+                  />
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    <select
+                      value={toCurrency}
+                      onChange={(e) => setToCurrency(e.target.value)}
+                      style={{
+                        fontWeight: "600",
+                        fontSize: "14px",
+                        border: "none",
+                        background: "transparent",
+                        outline: "none",
+                      }}
+                    >
+                      <option value="CNY">CNY</option>
+                      <option value="USD">USD</option>
+                      <option value="EUR">EUR</option>
+                      <option value="JPY">JPY</option>
+                    </select>
+                  </div>
+                  <span
+                    style={{
+                      marginLeft: "16px",
+                      fontSize: "16px",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    {convertedValue}
+                  </span>
+                </div>
               </div>
+            </div>
+            <div className="card-content">
+              <div className="card-description">
+                A simple, embeddable currency converter for your workspace
+              </div>
+              <button className="card-button" onClick={handleCopyClick}>
+                {isButtonCopied ? "Copied!" : "Copy Embed Link"}
+              </button>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Footer */}
-        <footer className="text-center py-6 text-gray-600 text-sm border-t border-gray-200 bg-white">
-          <p>© 2024 Simo Widgets</p>
-        </footer>
-      </main>
+      <footer className="footer">
+        <p>© 2024 Simo Widgets</p>
+      </footer>
     </>
   );
 }
