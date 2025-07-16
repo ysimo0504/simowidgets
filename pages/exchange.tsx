@@ -184,19 +184,8 @@ export default function Exchange() {
 
       <div className="min-h-screen bg-white flex items-center justify-center p-6">
         <div className="w-full max-w-md">
-          {/* Title */}
-          <div className="text-center mb-8">
-            <h1 className="text-lg font-medium text-black mb-1">💱 汇率换算</h1>
-            <p className="text-sm text-gray-600">实时汇率转换</p>
-          </div>
-
           {/* Currency Converter */}
           <CurrencyConverter />
-
-          {/* Footer */}
-          <div className="text-center mt-6">
-            <p className="text-xs text-gray-400">数据来源：Frankfurter API</p>
-          </div>
         </div>
       </div>
     </>

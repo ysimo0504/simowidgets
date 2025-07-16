@@ -282,7 +282,7 @@ export const CurrencyConverter = () => {
             display: "flex",
             alignItems: "center",
             background: "#f6f7fa",
-            borderRadius: "8px",
+
             padding: "6px 10px",
             minWidth: "130px",
           }}
@@ -311,7 +311,6 @@ export const CurrencyConverter = () => {
             display: "flex",
             alignItems: "center",
             background: "#f6f7fa",
-            borderRadius: "8px",
             padding: "6px 10px",
             minWidth: "130px",
           }}
