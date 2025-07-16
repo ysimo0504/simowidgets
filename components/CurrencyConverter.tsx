@@ -266,70 +266,202 @@ export const CurrencyConverter = () => {
   };
 
   return (
-    <div className="card-image exchange">
-      <div
-        style={{
-          display: "flex",
-          width: "100%",
-          justifyContent: "center",
-          alignItems: "center",
-          gap: "16px",
-          padding: "0 12px",
-        }}
-      >
+    <>
+      <div className="card-image exchange">
         <div
           style={{
             display: "flex",
+            width: "100%",
+            justifyContent: "center",
             alignItems: "center",
-            background: "#f6f7fa",
-
-            padding: "6px 10px",
-            minWidth: "130px",
+            gap: "16px",
+            padding: "0 12px",
           }}
         >
-          <CurrencySelector
-            value={fromCurrency}
-            onChange={setFromCurrency}
-            options={currencies}
-          />
-          <input
-            type="text"
-            value={amount}
-            onChange={handleAmountChange}
-            onBlur={handleAmountBlur}
-            placeholder="1"
-            className="amount-input"
-          />
-        </div>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              background: "#f8f8f7",
+              borderRadius: "10px",
+              padding: "6px 10px",
+              minWidth: "130px",
+            }}
+          >
+            <CurrencySelector
+              value={fromCurrency}
+              onChange={setFromCurrency}
+              options={currencies}
+            />
+            <input
+              type="text"
+              value={amount}
+              onChange={handleAmountChange}
+              onBlur={handleAmountBlur}
+              placeholder="1"
+              className="amount-input"
+            />
+          </div>
 
-        <span style={{ fontSize: "16px", color: "#999", flexShrink: 0 }}>
-          ⇄
-        </span>
+          <span style={{ fontSize: "16px", color: "#999", flexShrink: 0 }}>
+            ⇄
+          </span>
 
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            background: "#f6f7fa",
-            padding: "6px 10px",
-            minWidth: "130px",
-          }}
-        >
-          <CurrencySelector
-            value={toCurrency}
-            onChange={setToCurrency}
-            options={currencies}
-          />
-          <input
-            type="text"
-            value={convertedAmount}
-            onChange={handleConvertedAmountChange}
-            onBlur={handleConvertedAmountBlur}
-            placeholder="0"
-            className="converted-amount-input"
-          />
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              background: "#f8f8f7",
+              borderRadius: "10px",
+              padding: "6px 10px",
+              minWidth: "130px",
+            }}
+          >
+            <CurrencySelector
+              value={toCurrency}
+              onChange={setToCurrency}
+              options={currencies}
+            />
+            <input
+              type="text"
+              value={convertedAmount}
+              onChange={handleConvertedAmountChange}
+              onBlur={handleConvertedAmountBlur}
+              placeholder="0"
+              className="converted-amount-input"
+            />
+          </div>
         </div>
       </div>
-    </div>
+
+      <style jsx>{`
+        .card-image.exchange {
+          width: 100%;
+          height: 160px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: #fff;
+          color: #000;
+        }
+
+        .amount-input,
+        .converted-amount-input {
+          border: none;
+          outline: none;
+          background: transparent;
+          font-size: 16px;
+          font-weight: 600;
+          color: #000;
+          text-align: right;
+          width: 80px;
+          max-width: 80px;
+        }
+
+        .amount-input:focus,
+        .converted-amount-input:focus {
+          background: white;
+          box-shadow: 0 0 0 2px #007bff;
+        }
+
+        @media (max-width: 768px) {
+          .amount-input,
+          .converted-amount-input {
+            max-width: 55px;
+            font-size: 14px;
+          }
+        }
+      `}</style>
+
+      <style jsx global>{`
+        .currency-selector {
+          position: relative;
+          display: flex;
+          align-items: center;
+          margin-right: 8px;
+        }
+
+        .currency-selector-button {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 4px 8px;
+          background: white;
+          border: 1px solid #e1e5e9;
+          border-radius: 6px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          font-size: 14px;
+          font-weight: 500;
+        }
+
+        .currency-selector-button:hover {
+          border-color: #d1d5db;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .currency-flag {
+          width: 16px;
+          height: 12px;
+          border-radius: 2px;
+          object-fit: cover;
+        }
+
+        .currency-code {
+          color: #333;
+          font-weight: 600;
+        }
+
+        .currency-arrow {
+          color: #666;
+          font-size: 10px;
+          margin-left: 2px;
+        }
+
+        .currency-selector-dropdown {
+          position: absolute;
+          top: 100%;
+          left: 0;
+          right: 0;
+          background: white;
+          border: 1px solid #e1e5e9;
+          border-radius: 8px;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+          z-index: 1000;
+          max-height: 200px;
+          overflow-y: auto;
+          margin-top: 4px;
+        }
+
+        .currency-option {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 8px 12px;
+          cursor: pointer;
+          transition: background-color 0.2s ease;
+          border-bottom: 1px solid #f0f0f0;
+        }
+
+        .currency-option:last-child {
+          border-bottom: none;
+        }
+
+        .currency-option:hover {
+          background: #f8f9fa;
+        }
+
+        .currency-option.selected {
+          background: #e3f2fd;
+          color: #1976d2;
+        }
+
+        .currency-name {
+          font-size: 12px;
+          color: #666;
+          margin-left: auto;
+        }
+      `}</style>
+    </>
   );
 };
