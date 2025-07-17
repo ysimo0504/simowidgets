@@ -168,14 +168,21 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
           }
         `
           : `
-          html, body {
-            overflow: visible !important;
+          html {
+            overflow-y: clip !important;
             height: auto !important;
+          }
+          
+          body {
+            overflow-y: auto !important;
+            height: auto !important;
+            min-height: auto !important;
           }
           
           #__next {
             overflow: visible !important;
             height: auto !important;
+            min-height: auto !important;
           }
         `}
       `}</style>
