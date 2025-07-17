@@ -354,7 +354,7 @@ export const CurrencyConverter = () => {
           font-weight: 600;
           color: #000;
           text-align: right;
-          width: 80px;
+          width: 100%;
           max-width: 80px;
         }
 
