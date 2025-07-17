@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 
 /**
  * 通用的 Widget 页面布局组件
@@ -42,8 +42,6 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
   className = "",
 }) => {
   const [isEmbedded, setIsEmbedded] = useState(false);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // 检测是否在 iframe 中运行
@@ -58,118 +56,66 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
     const embedded = checkIfEmbedded();
     setIsEmbedded(embedded);
 
-    // 如果是嵌入环境，进行额外的优化
+    // 如果是嵌入环境，采用简洁的优化策略
     if (embedded) {
-      // 1. 立即设置初始高度
-      document.body.style.minHeight = "250px";
-      document.documentElement.style.minHeight = "250px";
+      // 1. 只在初始化时设置一次
+      document.documentElement.style.height = "auto";
+      document.body.style.height = "auto";
+      document.body.style.margin = "0";
+      document.body.style.padding = "0";
 
-      // 2. 确保内容加载完成后通知父页面
-      const notifyParentOfSize = () => {
-        if (containerRef.current) {
-          const height = containerRef.current.offsetHeight;
-          const width = containerRef.current.offsetWidth;
-
-          // 发送尺寸信息给父页面（Notion）
-          try {
-            window.parent.postMessage(
-              {
-                type: "resize",
-                height: Math.max(height + 40, 250), // 至少250px高度
-                width: width,
-              },
-              "*"
-            );
-          } catch (e) {
-            console.log("Unable to communicate with parent frame");
-          }
-        }
-      };
-
-      // 3. 延迟通知，确保渲染完成
+      // 2. 简单的一次性尺寸通知（仅在组件挂载时）
       const timer = setTimeout(() => {
-        notifyParentOfSize();
-        setIsLoaded(true);
-      }, 100);
-
-      // 4. 监听窗口大小变化
-      const resizeObserver = new ResizeObserver(() => {
-        notifyParentOfSize();
-      });
-
-      if (containerRef.current) {
-        resizeObserver.observe(containerRef.current);
-      }
+        try {
+          window.parent.postMessage(
+            {
+              type: "setHeight",
+              height: document.body.scrollHeight,
+            },
+            "*"
+          );
+        } catch (e) {
+          // 静默失败，不影响功能
+        }
+      }, 300);
 
       return () => {
         clearTimeout(timer);
-        resizeObserver.disconnect();
       };
-    } else {
-      setIsLoaded(true);
     }
   }, []);
 
-  // 为嵌入环境添加额外的样式类
-  const pageClasses = [
-    "widget-page",
-    className,
-    isEmbedded ? "embedded" : "",
-    isLoaded ? "loaded" : "loading",
-  ]
-    .filter(Boolean)
-    .join(" ");
-
   return (
     <>
-      <div className={pageClasses} ref={containerRef}>
+      <div
+        className={`widget-page ${className} ${isEmbedded ? "embedded" : ""}`}
+      >
         <main className="widget-main">
           <div className="widget-container">{children}</div>
         </main>
       </div>
 
       <style jsx global>{`
-        /* 重置浏览器默认样式 */
-        *,
-        *::before,
-        *::after {
-          margin: 0;
-          padding: 0;
+        /* 全局重置 - 简洁版本 */
+        * {
           box-sizing: border-box;
         }
 
-        html,
         body {
           margin: 0;
           padding: 0;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         }
 
-        /* 嵌入环境的特殊处理 */
-        ${isEmbedded
+        /* 非嵌入环境的样式 */
+        ${!isEmbedded
           ? `
-          html, body {
-            min-height: 250px !important;
-            height: auto !important;
-            overflow: visible !important;
-          }
-          
-          #__next {
-            min-height: 250px !important;
-            height: auto !important;
-            overflow: visible !important;
+          html, body, #__next {
+            height: 100%;
+            overflow: hidden;
           }
         `
-          : `
-          html, body {
-            height: 100%;
-            overflow: hidden;
-          }
-          
-          #__next {
-            height: 100%;
-            overflow: hidden;
-          }
-        `}
+          : ""}
       `}</style>
 
       <style jsx>{`
@@ -177,31 +123,20 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
           width: 100%;
           background: ${backgroundColor};
           position: relative;
-          margin: 0;
-          padding: 0;
         }
 
-        /* 非嵌入环境：全屏布局 */
+        /* 独立页面模式 */
         .widget-page:not(.embedded) {
           height: 100vh;
           overflow: hidden;
         }
 
-        /* 嵌入环境：自适应布局 */
+        /* 嵌入模式 - 关键优化 */
         .widget-page.embedded {
-          min-height: 250px;
-          height: auto;
-          overflow: visible;
-        }
-
-        /* 加载状态处理 */
-        .widget-page.embedded.loading {
-          min-height: 250px;
-          height: 250px; /* 首次加载时固定高度 */
-        }
-
-        .widget-page.embedded.loaded {
-          height: auto; /* 加载完成后自适应 */
+          /* 让 Notion 控制尺寸，不强制设置高度 */
+          min-height: 200px;
+          padding: 20px;
+          /* 移除所有可能干扰的样式 */
         }
 
         .widget-main {
@@ -209,48 +144,30 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
           display: flex;
           align-items: center;
           justify-content: center;
-          box-sizing: border-box;
-          margin: 0;
         }
 
-        /* 非嵌入环境：全高度 */
+        /* 独立页面 */
         .widget-page:not(.embedded) .widget-main {
           height: 100%;
           padding: 20px;
         }
 
-        /* 嵌入环境：固定内边距 */
+        /* 嵌入页面 - 简化布局 */
         .widget-page.embedded .widget-main {
-          min-height: 250px;
-          padding: 30px 20px; /* 增加上下内边距确保拖拽区域 */
+          padding: 0;
+          min-height: 160px;
         }
 
         .widget-container {
           width: 100%;
           max-width: ${maxWidth};
-          display: flex;
-          align-items: center;
-          justify-content: center;
           margin: 0 auto;
-          padding: 0;
         }
 
-        /* Notion 嵌入特别优化 */
-        .widget-page.embedded {
-          /* 确保有足够的拖拽区域 */
-          border: 1px solid transparent;
-          border-radius: 4px;
-        }
-
-        /* 响应式适配 */
-        @media screen and (max-width: 768px) {
-          .widget-main {
+        /* 响应式优化 - 简化版本 */
+        @media (max-width: 768px) {
+          .widget-page.embedded {
             padding: 16px;
-          }
-
-          .widget-page.embedded .widget-main {
-            padding: 24px 16px;
-            min-height: 220px;
           }
 
           .widget-container {
@@ -258,51 +175,13 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
           }
         }
 
-        @media screen and (max-width: 480px) {
-          .widget-main {
-            padding: 12px 8px;
-          }
-
-          .widget-page.embedded .widget-main {
-            padding: 20px 12px;
-            min-height: 200px;
+        @media (max-width: 480px) {
+          .widget-page.embedded {
+            padding: 12px;
           }
 
           .widget-container {
-            max-width: calc(${maxWidth} * 0.8);
-          }
-        }
-
-        @media screen and (max-width: 360px) {
-          .widget-main {
-            padding: 10px 6px;
-          }
-
-          .widget-page.embedded .widget-main {
-            padding: 18px 10px;
-            min-height: 180px;
-          }
-
-          .widget-container {
-            max-width: calc(${maxWidth} * 0.75);
-          }
-        }
-
-        @media screen and (min-width: 1200px) {
-          .widget-container {
-            max-width: calc(${maxWidth} * 1.07);
-          }
-        }
-
-        /* 横屏优化 */
-        @media screen and (max-height: 500px) and (orientation: landscape) {
-          .widget-main {
-            padding: 8px;
-          }
-
-          .widget-page.embedded .widget-main {
-            padding: 16px 8px;
-            min-height: 160px;
+            max-width: calc(${maxWidth} * 0.85);
           }
         }
       `}</style>
