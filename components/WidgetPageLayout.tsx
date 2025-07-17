@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 
 /**
  * 通用的 Widget 页面布局组件
@@ -41,26 +41,9 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
   backgroundColor = "white",
   className = "",
 }) => {
-  const [isEmbedded, setIsEmbedded] = useState(false);
-
-  useEffect(() => {
-    // 检测是否在 iframe 中运行
-    const checkIfEmbedded = () => {
-      try {
-        return window.self !== window.top;
-      } catch (e) {
-        return true;
-      }
-    };
-
-    setIsEmbedded(checkIfEmbedded());
-  }, []);
-
   return (
     <>
-      <div
-        className={`widget-page ${className} ${isEmbedded ? "embedded" : ""}`}
-      >
+      <div className={`widget-page ${className}`}>
         <main className="widget-main">
           <div className="widget-container">{children}</div>
         </main>
@@ -80,65 +63,36 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
         body {
           margin: 0;
           padding: 0;
+          height: 100%;
+          overflow: hidden; /* 防止任何滚动 */
         }
 
-        /* 非嵌入环境的全局样式 */
-        ${!isEmbedded
-          ? `
-          html, body {
-            height: 100%;
-            overflow: hidden;
-          }
-          
-          #__next {
-            height: 100%;
-            overflow: hidden;
-          }
-        `
-          : ""}
+        #__next {
+          height: 100%;
+          overflow: hidden;
+        }
       `}</style>
 
       <style jsx>{`
         .widget-page {
           width: 100%;
+          height: 100vh;
           background: ${backgroundColor};
           position: relative;
+          overflow: hidden;
           margin: 0;
           padding: 0;
         }
 
-        /* 非嵌入环境：全屏布局 */
-        .widget-page:not(.embedded) {
-          height: 100vh;
-          overflow: hidden;
-        }
-
-        /* 嵌入环境：自适应布局 */
-        .widget-page.embedded {
-          min-height: 200px;
-          height: auto;
-          overflow: visible;
-        }
-
         .widget-main {
           width: 100%;
+          height: 100%;
           display: flex;
           align-items: center;
           justify-content: center;
+          padding: 20px;
           box-sizing: border-box;
           margin: 0;
-        }
-
-        /* 非嵌入环境：全高度 */
-        .widget-page:not(.embedded) .widget-main {
-          height: 100%;
-          padding: 20px;
-        }
-
-        /* 嵌入环境：自适应高度 */
-        .widget-page.embedded .widget-main {
-          min-height: 200px;
-          padding: 24px 20px;
         }
 
         .widget-container {
@@ -157,10 +111,6 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
             padding: 16px;
           }
 
-          .widget-page.embedded .widget-main {
-            padding: 20px 16px;
-          }
-
           .widget-container {
             max-width: calc(${maxWidth} * 0.9);
           }
@@ -171,10 +121,6 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
             padding: 12px 8px;
           }
 
-          .widget-page.embedded .widget-main {
-            padding: 16px 12px;
-          }
-
           .widget-container {
             max-width: calc(${maxWidth} * 0.8);
           }
@@ -183,10 +129,6 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
         @media screen and (max-width: 360px) {
           .widget-main {
             padding: 10px 6px;
-          }
-
-          .widget-page.embedded .widget-main {
-            padding: 14px 10px;
           }
 
           .widget-container {
@@ -200,25 +142,9 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
           }
         }
 
-        /* 横屏优化 */
         @media screen and (max-height: 500px) and (orientation: landscape) {
           .widget-main {
             padding: 8px;
-          }
-
-          .widget-page.embedded .widget-main {
-            padding: 12px 8px;
-          }
-        }
-
-        /* 嵌入环境的额外优化 */
-        .widget-page.embedded {
-          /* 确保在小容器中也能正常显示 */
-          @media screen and (max-height: 300px) {
-            .widget-main {
-              padding: 8px;
-              min-height: 150px;
-            }
           }
         }
       `}</style>
