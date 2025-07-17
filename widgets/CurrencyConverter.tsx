@@ -80,9 +80,6 @@ export const CurrencySelector = ({
                 className="currency-flag"
               />
               <span className="currency-code">{option}</span>
-              {/* <span className="currency-name">
-                {currencyData[option as keyof typeof currencyData].name}
-              </span> */}
             </div>
           ))}
         </div>
@@ -99,6 +96,17 @@ export const CurrencyConverter = () => {
   const [toCurrency, setToCurrency] = useState("CNY");
   const [isLoading, setIsLoading] = useState(false);
   const [lastModified, setLastModified] = useState<"from" | "to">("from");
+  const [isEmbedded, setIsEmbedded] = useState(false);
+  const [isRequesting, setIsRequesting] = useState(false);
+
+  // 使用 useRef 存储防抖定时器，避免重新创建
+  const debounceRef = useRef<{
+    updateToAmount: NodeJS.Timeout | null;
+    updateFromAmount: NodeJS.Timeout | null;
+  }>({
+    updateToAmount: null,
+    updateFromAmount: null,
+  });
 
   const currencies = [
     "USD",
@@ -112,18 +120,27 @@ export const CurrencyConverter = () => {
     "KRW",
   ];
 
-  // 防抖函数
-  const debounce = (func: Function, delay: number) => {
-    let timeoutId: NodeJS.Timeout;
-    return (...args: any[]) => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => func.apply(null, args), delay);
+  // 检测是否在 iframe 中
+  useEffect(() => {
+    const checkIfEmbedded = () => {
+      try {
+        return window.self !== window.top;
+      } catch (e) {
+        return true;
+      }
     };
-  };
+    setIsEmbedded(checkIfEmbedded());
+  }, []);
+
+  // 在 iframe 环境中使用更长的防抖延迟
+  const debounceDelay = isEmbedded ? 500 : 300;
 
   // 正向换算：from -> to
-  const updateToAmount = async () => {
+  const updateToAmount = useCallback(async () => {
+    if (isRequesting) return; // 避免重复请求
+
     try {
+      setIsRequesting(true);
       setIsLoading(true);
       const numAmount = parseFloat(amount) || 1;
 
@@ -132,9 +149,15 @@ export const CurrencyConverter = () => {
         return;
       }
 
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5秒超时
+
       const response = await fetch(
-        `https://api.frankfurter.dev/v1/latest?amount=${numAmount}&from=${fromCurrency}&to=${toCurrency}`
+        `https://api.frankfurter.dev/v1/latest?amount=${numAmount}&from=${fromCurrency}&to=${toCurrency}`,
+        { signal: controller.signal }
       );
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         throw new Error("Failed to fetch exchange rate");
@@ -147,16 +170,22 @@ export const CurrencyConverter = () => {
         setConvertedAmount(rate.toFixed(2));
       }
     } catch (error) {
-      console.error("Rate fetch error:", error);
-      setConvertedAmount("Error");
+      if (error.name !== "AbortError") {
+        console.error("Rate fetch error:", error);
+        setConvertedAmount("Error");
+      }
     } finally {
       setIsLoading(false);
+      setIsRequesting(false);
     }
-  };
+  }, [amount, fromCurrency, toCurrency, isRequesting]);
 
   // 反向换算：to -> from
-  const updateFromAmount = async () => {
+  const updateFromAmount = useCallback(async () => {
+    if (isRequesting) return; // 避免重复请求
+
     try {
+      setIsRequesting(true);
       setIsLoading(true);
       const numAmount = parseFloat(convertedAmount) || 1;
 
@@ -165,9 +194,15 @@ export const CurrencyConverter = () => {
         return;
       }
 
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5秒超时
+
       const response = await fetch(
-        `https://api.frankfurter.dev/v1/latest?amount=${numAmount}&from=${toCurrency}&to=${fromCurrency}`
+        `https://api.frankfurter.dev/v1/latest?amount=${numAmount}&from=${toCurrency}&to=${fromCurrency}`,
+        { signal: controller.signal }
       );
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         throw new Error("Failed to fetch exchange rate");
@@ -180,50 +215,55 @@ export const CurrencyConverter = () => {
         setAmount(rate.toFixed(2));
       }
     } catch (error) {
-      console.error("Rate fetch error:", error);
-      setAmount("Error");
+      if (error.name !== "AbortError") {
+        console.error("Rate fetch error:", error);
+        setAmount("Error");
+      }
     } finally {
       setIsLoading(false);
+      setIsRequesting(false);
     }
-  };
+  }, [convertedAmount, fromCurrency, toCurrency, isRequesting]);
 
-  // 创建防抖的更新函数
-  const debouncedUpdateToAmount = useCallback(debounce(updateToAmount, 300), [
-    amount,
-    fromCurrency,
-    toCurrency,
-  ]);
+  // 修复的防抖函数 - 使用 useRef 避免重新创建
+  const debouncedUpdateToAmount = useCallback(() => {
+    if (debounceRef.current.updateToAmount) {
+      clearTimeout(debounceRef.current.updateToAmount);
+    }
+    debounceRef.current.updateToAmount = setTimeout(() => {
+      updateToAmount();
+    }, debounceDelay);
+  }, [updateToAmount, debounceDelay]);
 
-  const debouncedUpdateFromAmount = useCallback(
-    debounce(updateFromAmount, 300),
-    [convertedAmount, fromCurrency, toCurrency]
-  );
+  const debouncedUpdateFromAmount = useCallback(() => {
+    if (debounceRef.current.updateFromAmount) {
+      clearTimeout(debounceRef.current.updateFromAmount);
+    }
+    debounceRef.current.updateFromAmount = setTimeout(() => {
+      updateFromAmount();
+    }, debounceDelay);
+  }, [updateFromAmount, debounceDelay]);
 
-  // 根据最后修改的输入框决定换算方向
+  // 修复的 useEffect - 简化依赖，避免循环
   useEffect(() => {
     if (lastModified === "from") {
       debouncedUpdateToAmount();
     } else {
       debouncedUpdateFromAmount();
     }
-  }, [
-    amount,
-    convertedAmount,
-    fromCurrency,
-    toCurrency,
-    lastModified,
-    debouncedUpdateToAmount,
-    debouncedUpdateFromAmount,
-  ]);
+  }, [amount, convertedAmount, fromCurrency, toCurrency, lastModified]);
 
-  // 货币变化时，保持当前lastModified方向的换算
+  // 清理定时器
   useEffect(() => {
-    if (lastModified === "from") {
-      debouncedUpdateToAmount();
-    } else {
-      debouncedUpdateFromAmount();
-    }
-  }, [fromCurrency, toCurrency]);
+    return () => {
+      if (debounceRef.current.updateToAmount) {
+        clearTimeout(debounceRef.current.updateToAmount);
+      }
+      if (debounceRef.current.updateFromAmount) {
+        clearTimeout(debounceRef.current.updateFromAmount);
+      }
+    };
+  }, []);
 
   // 处理左边输入框变化
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -282,6 +322,7 @@ export const CurrencyConverter = () => {
               onBlur={handleAmountBlur}
               placeholder="1"
               className="amount-input"
+              disabled={isLoading}
             />
           </div>
 
@@ -300,6 +341,7 @@ export const CurrencyConverter = () => {
               onBlur={handleConvertedAmountBlur}
               placeholder="0"
               className="converted-amount-input"
+              disabled={isLoading}
             />
           </div>
         </div>
@@ -368,6 +410,12 @@ export const CurrencyConverter = () => {
           line-height: 1.2;
         }
 
+        .amount-input:disabled,
+        .converted-amount-input:disabled {
+          opacity: 0.7;
+          cursor: not-allowed;
+        }
+
         .amount-input:focus,
         .converted-amount-input:focus {
           background: white;
@@ -378,33 +426,30 @@ export const CurrencyConverter = () => {
         /* 手机端 - 垂直布局 */
         @media screen and (max-width: 768px) {
           .card-image.exchange {
-            padding: 20px 12px; /* 增加垂直padding */
-            min-height: 160px; /* 适应垂直布局需要更多高度 */
+            padding: 20px 12px;
+            min-height: 160px;
             max-height: 200px;
           }
 
           .converter-container {
-            flex-direction: column; /* 改为垂直布局 */
-            gap: 16px; /* 增加垂直间距 */
-            max-width: 320px; /* 稍微增加宽度 */
+            flex-direction: column;
+            gap: 16px;
+            max-width: 320px;
           }
 
           .input-group {
             width: 100%;
-            padding: 10px 14px; /* 稍微增加padding */
-            /* 元素大小保持不变 */
+            padding: 10px 14px;
           }
 
           .swap-icon {
-            transform: rotate(90deg); /* 旋转为垂直箭头 */
-            margin: 0; /* 重置margin */
+            transform: rotate(90deg);
+            margin: 0;
           }
 
-          /* 输入框大小保持不变 */
           .amount-input,
           .converted-amount-input {
-            text-align: center; /* 居中对齐更适合垂直布局 */
-            /* 字体大小保持16px不变 */
+            text-align: center;
           }
         }
 
@@ -424,8 +469,6 @@ export const CurrencyConverter = () => {
           .input-group {
             padding: 8px 12px;
           }
-
-          /* 所有元素大小保持不变 */
         }
       `}</style>
 
@@ -523,31 +566,30 @@ export const CurrencyConverter = () => {
         /* 手机端 - 保持元素大小不变，只调整间距 */
         @media screen and (max-width: 480px) {
           .currency-selector {
-            margin-right: 8px; /* 保持原始margin */
+            margin-right: 8px;
           }
 
-          /* 货币选择器大小保持不变 */
           .currency-selector-button {
-            padding: 4px 8px; /* 保持原始padding */
-            gap: 6px; /* 保持原始gap */
+            padding: 4px 8px;
+            gap: 6px;
           }
 
           .currency-flag {
-            width: 16px; /* 保持原始大小 */
+            width: 16px;
             height: 12px;
           }
 
           .currency-code {
-            font-size: 14px; /* 保持原始字体大小 */
+            font-size: 14px;
           }
 
           .currency-arrow {
-            font-size: 10px; /* 保持原始大小 */
+            font-size: 10px;
           }
 
           .currency-option {
-            padding: 8px 12px; /* 保持原始padding */
-            gap: 8px; /* 保持原始gap */
+            padding: 8px 12px;
+            gap: 8px;
           }
         }
       `}</style>
