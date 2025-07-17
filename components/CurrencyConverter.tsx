@@ -80,9 +80,9 @@ export const CurrencySelector = ({
                 className="currency-flag"
               />
               <span className="currency-code">{option}</span>
-              <span className="currency-name">
+              {/* <span className="currency-name">
                 {currencyData[option as keyof typeof currencyData].name}
-              </span>
+              </span> */}
             </div>
           ))}
         </div>
@@ -432,7 +432,9 @@ export const CurrencyConverter = () => {
           overflow-y: auto;
           margin-top: 4px;
         }
-
+        .currency-selector-dropdown::-webkit-scrollbar {
+          display: none; /* Chrome, Safari */
+        }
         .currency-option {
           display: flex;
           align-items: center;
