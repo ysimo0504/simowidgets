@@ -467,3 +467,7 @@ export const CurrencyConverter = () => {
     </>
   );
 };
+
+// 为组件添加静态路径信息
+// CurrencyConverter.embedPath = "/exchange";
+// CurrencyConverter.displayName = "Currency Converter";

@@ -3,16 +3,7 @@ import { CurrencyConverter } from "../components/CurrencyConverter";
 import { Card } from "../components/Card";
 
 export default function Home() {
-  const [isButtonCopied, setIsButtonCopied] = useState(false);
   const host = "https://widgets.heysimo.com";
-
-  const handleCopyClick = () => {
-    setIsButtonCopied(true);
-    setTimeout(() => {
-      setIsButtonCopied(false);
-    }, 2000);
-    navigator.clipboard.writeText(`${host}/exchange`);
-  };
 
   return (
     <>
@@ -120,16 +111,23 @@ export default function Home() {
         <div className="grid">
           {/* 汇率换算器 */}
           <Card
-            description="A simple, embeddable currency converter for your workspace"
+            description="A simple, embeddable currency converter"
             buttonText="Copy Embed Link"
-            buttonClickedText="Copied!"
-            onButtonClick={handleCopyClick}
-            isButtonClicked={isButtonCopied}
+            embedUrl={`${host}/exchange`}
           >
             <CurrencyConverter />
           </Card>
 
           {/* 可以在这里添加更多的 card */}
+          {/* 例如：
+          <Card
+            description="Another widget for your workspace"
+            buttonText="Copy Embed Link"
+            embedUrl={`${host}/another-widget`}
+          >
+            <AnotherWidget />
+          </Card>
+          */}
         </div>
       </div>
 
