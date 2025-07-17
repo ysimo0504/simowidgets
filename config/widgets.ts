@@ -1,4 +1,5 @@
 import { CurrencyConverter } from "../widgets/CurrencyConverter";
+import { TestWidget } from "../widgets/TestWidget";
 
 // Widget 配置接口
 export interface WidgetConfig {
@@ -25,16 +26,16 @@ export const WIDGETS_CONFIG: WidgetConfig[] = [
     enabled: true,
   },
   // 未来添加更多 widgets 只需在这里配置
-  // {
-  //   id: "calculator",
-  //   name: "Calculator",
-  //   description: "A simple calculator widget",
-  //   component: Calculator,
-  //   pagePath: "calculator",
-  //   buttonText: "Copy Embed Link",
-  //   maxWidth: "350px",
-  //   enabled: true,
-  // },
+  {
+    id: "test",
+    name: "test",
+    description: "A simple test widget",
+    component: TestWidget,
+    pagePath: "test",
+    buttonText: "Copy Embed Link",
+    maxWidth: "350px",
+    enabled: true,
+  },
 ];
 
 // 获取所有启用的 widgets
