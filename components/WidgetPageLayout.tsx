@@ -42,9 +42,10 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
   className = "",
 }) => {
   const [isEmbedded, setIsEmbedded] = useState(false);
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    // 检测是否在 iframe 中运行
+    // 检测嵌入环境
     const checkIfEmbedded = () => {
       try {
         return window.self !== window.top;
@@ -56,34 +57,87 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
     const embedded = checkIfEmbedded();
     setIsEmbedded(embedded);
 
-    // 如果是嵌入环境，采用简洁的优化策略
     if (embedded) {
-      // 1. 只在初始化时设置一次
-      document.documentElement.style.height = "auto";
-      document.body.style.height = "auto";
-      document.body.style.margin = "0";
-      document.body.style.padding = "0";
+      // 关键修复：确保页面完全加载后再设置为就绪状态
+      const initEmbed = () => {
+        // 1. 设置基础样式
+        document.documentElement.style.overflow = "visible";
+        document.body.style.overflow = "visible";
+        document.body.style.margin = "0";
+        document.body.style.padding = "0";
 
-      // 2. 简单的一次性尺寸通知（仅在组件挂载时）
-      const timer = setTimeout(() => {
-        try {
-          window.parent.postMessage(
-            {
-              type: "setHeight",
-              height: document.body.scrollHeight,
-            },
-            "*"
-          );
-        } catch (e) {
-          // 静默失败，不影响功能
-        }
-      }, 300);
+        // 2. 确保内容渲染完成
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            setIsReady(true);
 
-      return () => {
-        clearTimeout(timer);
+            // 3. 一次性通知父窗口高度（延迟确保内容已渲染）
+            setTimeout(() => {
+              const height = Math.max(document.body.scrollHeight, 250);
+              try {
+                window.parent.postMessage(
+                  {
+                    type: "setHeight",
+                    height: height,
+                  },
+                  "*"
+                );
+              } catch (e) {
+                // 静默处理
+              }
+            }, 500);
+          });
+        });
       };
+
+      // 确保 DOM 准备就绪
+      if (document.readyState === "complete") {
+        initEmbed();
+      } else {
+        window.addEventListener("load", initEmbed);
+        return () => window.removeEventListener("load", initEmbed);
+      }
+    } else {
+      setIsReady(true);
     }
   }, []);
+
+  // 如果是嵌入环境但还未就绪，显示加载状态
+  if (isEmbedded && !isReady) {
+    return (
+      <div
+        style={{
+          width: "100%",
+          minHeight: "250px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: backgroundColor,
+        }}
+      >
+        <div
+          style={{
+            width: "20px",
+            height: "20px",
+            border: "2px solid #f3f3f3",
+            borderTop: "2px solid #3498db",
+            borderRadius: "50%",
+            animation: "spin 1s linear infinite",
+          }}
+        ></div>
+        <style jsx>{`
+          @keyframes spin {
+            0% {
+              transform: rotate(0deg);
+            }
+            100% {
+              transform: rotate(360deg);
+            }
+          }
+        `}</style>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -96,7 +150,6 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
       </div>
 
       <style jsx global>{`
-        /* 全局重置 - 简洁版本 */
         * {
           box-sizing: border-box;
         }
@@ -107,7 +160,6 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         }
 
-        /* 非嵌入环境的样式 */
         ${!isEmbedded
           ? `
           html, body, #__next {
@@ -115,7 +167,17 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
             overflow: hidden;
           }
         `
-          : ""}
+          : `
+          html, body {
+            overflow: visible !important;
+            height: auto !important;
+          }
+          
+          #__next {
+            overflow: visible !important;
+            height: auto !important;
+          }
+        `}
       `}</style>
 
       <style jsx>{`
@@ -125,18 +187,16 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
           position: relative;
         }
 
-        /* 独立页面模式 */
         .widget-page:not(.embedded) {
           height: 100vh;
           overflow: hidden;
         }
 
-        /* 嵌入模式 - 关键优化 */
         .widget-page.embedded {
-          /* 让 Notion 控制尺寸，不强制设置高度 */
-          min-height: 200px;
-          padding: 20px;
-          /* 移除所有可能干扰的样式 */
+          min-height: 250px;
+          height: auto;
+          padding: 24px;
+          /* 关键：移除所有可能干扰的属性 */
         }
 
         .widget-main {
@@ -146,16 +206,14 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
           justify-content: center;
         }
 
-        /* 独立页面 */
         .widget-page:not(.embedded) .widget-main {
           height: 100%;
           padding: 20px;
         }
 
-        /* 嵌入页面 - 简化布局 */
         .widget-page.embedded .widget-main {
           padding: 0;
-          min-height: 160px;
+          min-height: 200px;
         }
 
         .widget-container {
@@ -164,10 +222,9 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
           margin: 0 auto;
         }
 
-        /* 响应式优化 - 简化版本 */
         @media (max-width: 768px) {
           .widget-page.embedded {
-            padding: 16px;
+            padding: 20px;
           }
 
           .widget-container {
@@ -177,7 +234,7 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
 
         @media (max-width: 480px) {
           .widget-page.embedded {
-            padding: 12px;
+            padding: 16px;
           }
 
           .widget-container {
