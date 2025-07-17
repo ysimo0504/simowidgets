@@ -376,7 +376,7 @@ export const CurrencyConverter = () => {
         }
 
         /* 手机端 - 垂直布局 */
-        @media screen and (max-width: 480px) {
+        @media screen and (max-width: 768px) {
           .card-image.exchange {
             padding: 20px 12px; /* 增加垂直padding */
             min-height: 160px; /* 适应垂直布局需要更多高度 */

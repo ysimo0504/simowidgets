@@ -82,7 +82,7 @@ export const Card: React.FC<CardProps> = ({
           transition: all 0.2s ease;
           position: relative;
           width: 100%;
-          max-width: 400px;
+          max-width: 480px;
           margin-left: 0;
         }
 
