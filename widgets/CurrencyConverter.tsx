@@ -308,13 +308,16 @@ export const CurrencyConverter = () => {
       <style jsx>{`
         .card-image.exchange {
           width: 100%;
-          height: 160px;
+          /* 移除固定高度，使用自适应 */
+          min-height: 120px;
+          max-height: 160px;
           display: flex;
           align-items: center;
           justify-content: center;
           background: #fff;
           color: #000;
-          padding: 0 16px;
+          padding: 16px;
+          margin: 0; /* 确保没有外边距 */
         }
 
         .converter-container {
@@ -324,6 +327,7 @@ export const CurrencyConverter = () => {
           justify-content: center;
           align-items: center;
           gap: 12px;
+          margin: 0; /* 确保没有外边距 */
         }
 
         .input-group {
@@ -333,7 +337,8 @@ export const CurrencyConverter = () => {
           border-radius: 10px;
           padding: 6px 10px;
           flex: 1;
-          min-width: 0; /* 允许缩小 */
+          min-width: 0;
+          margin: 0; /* 确保没有外边距 */
         }
 
         .swap-icon {
@@ -342,6 +347,8 @@ export const CurrencyConverter = () => {
           flex-shrink: 0;
           min-width: 20px;
           text-align: center;
+          line-height: 1; /* 设置行高为1，避免额外高度 */
+          margin: 0;
         }
 
         .amount-input,
@@ -356,6 +363,9 @@ export const CurrencyConverter = () => {
           width: 100%;
           min-width: 60px;
           max-width: none;
+          margin: 0;
+          padding: 0;
+          line-height: 1.2; /* 控制行高 */
         }
 
         .amount-input:focus,
@@ -363,6 +373,31 @@ export const CurrencyConverter = () => {
           background: white;
           box-shadow: 0 0 0 2px #007bff;
           border-radius: 4px;
+        }
+
+        /* 响应式适配也要修改高度 */
+        @media screen and (max-width: 768px) {
+          .card-image.exchange {
+            padding: 12px;
+            min-height: 100px;
+            max-height: 140px;
+          }
+        }
+
+        @media screen and (max-width: 480px) {
+          .card-image.exchange {
+            padding: 8px;
+            min-height: 90px;
+            max-height: 120px;
+          }
+        }
+
+        @media screen and (max-width: 360px) {
+          .card-image.exchange {
+            padding: 6px;
+            min-height: 80px;
+            max-height: 110px;
+          }
         }
 
         /* 平板适配 */

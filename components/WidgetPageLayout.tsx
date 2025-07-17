@@ -49,23 +49,50 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
         </main>
       </div>
 
+      <style jsx global>{`
+        /* 重置浏览器默认样式 */
+        *,
+        *::before,
+        *::after {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+
+        html,
+        body {
+          margin: 0;
+          padding: 0;
+          height: 100%;
+          overflow: hidden; /* 防止任何滚动 */
+        }
+
+        #__next {
+          height: 100%;
+          overflow: hidden;
+        }
+      `}</style>
+
       <style jsx>{`
         .widget-page {
           width: 100%;
-          min-height: 100vh;
+          height: 100vh;
           background: ${backgroundColor};
           position: relative;
-          overflow-x: hidden;
+          overflow: hidden;
+          margin: 0;
+          padding: 0;
         }
 
         .widget-main {
           width: 100%;
-          min-height: 100vh;
+          height: 100%;
           display: flex;
           align-items: center;
           justify-content: center;
           padding: 20px;
           box-sizing: border-box;
+          margin: 0;
         }
 
         .widget-container {
@@ -75,9 +102,10 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
           align-items: center;
           justify-content: center;
           margin: 0 auto;
+          padding: 0;
         }
 
-        /* 平板适配 */
+        /* 响应式适配 */
         @media screen and (max-width: 768px) {
           .widget-main {
             padding: 16px;
@@ -88,7 +116,6 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
           }
         }
 
-        /* 手机适配 */
         @media screen and (max-width: 480px) {
           .widget-main {
             padding: 12px 8px;
@@ -99,7 +126,6 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
           }
         }
 
-        /* 小屏手机适配 */
         @media screen and (max-width: 360px) {
           .widget-main {
             padding: 10px 6px;
@@ -110,18 +136,15 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
           }
         }
 
-        /* 超大屏幕适配 */
         @media screen and (min-width: 1200px) {
           .widget-container {
             max-width: calc(${maxWidth} * 1.07);
           }
         }
 
-        /* 横屏手机适配 */
         @media screen and (max-height: 500px) and (orientation: landscape) {
           .widget-main {
             padding: 8px;
-            min-height: 100vh;
           }
         }
       `}</style>
