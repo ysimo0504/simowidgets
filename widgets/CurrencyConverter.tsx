@@ -268,26 +268,8 @@ export const CurrencyConverter = () => {
   return (
     <>
       <div className="card-image exchange">
-        <div
-          style={{
-            display: "flex",
-            width: "100%",
-            justifyContent: "center",
-            alignItems: "center",
-            gap: "16px",
-            padding: "0 12px",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              background: "#f8f8f7",
-              borderRadius: "10px",
-              padding: "6px 10px",
-              minWidth: "130px",
-            }}
-          >
+        <div className="converter-container">
+          <div className="input-group">
             <CurrencySelector
               value={fromCurrency}
               onChange={setFromCurrency}
@@ -303,20 +285,9 @@ export const CurrencyConverter = () => {
             />
           </div>
 
-          <span style={{ fontSize: "16px", color: "#999", flexShrink: 0 }}>
-            ⇄
-          </span>
+          <div className="swap-icon">⇄</div>
 
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              background: "#f8f8f7",
-              borderRadius: "10px",
-              padding: "6px 10px",
-              minWidth: "130px",
-            }}
-          >
+          <div className="input-group">
             <CurrencySelector
               value={toCurrency}
               onChange={setToCurrency}
@@ -343,6 +314,34 @@ export const CurrencyConverter = () => {
           justify-content: center;
           background: #fff;
           color: #000;
+          padding: 0 16px;
+        }
+
+        .converter-container {
+          display: flex;
+          width: 100%;
+          max-width: 400px;
+          justify-content: center;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .input-group {
+          display: flex;
+          align-items: center;
+          background: #f8f8f7;
+          border-radius: 10px;
+          padding: 6px 10px;
+          flex: 1;
+          min-width: 0; /* 允许缩小 */
+        }
+
+        .swap-icon {
+          font-size: 16px;
+          color: #999;
+          flex-shrink: 0;
+          min-width: 20px;
+          text-align: center;
         }
 
         .amount-input,
@@ -355,20 +354,111 @@ export const CurrencyConverter = () => {
           color: #000;
           text-align: right;
           width: 100%;
-          max-width: 80px;
+          min-width: 60px;
+          max-width: none;
         }
 
         .amount-input:focus,
         .converted-amount-input:focus {
           background: white;
           box-shadow: 0 0 0 2px #007bff;
+          border-radius: 4px;
         }
 
-        @media (max-width: 768px) {
+        /* 平板适配 */
+        @media screen and (max-width: 768px) {
+          .card-image.exchange {
+            padding: 0 12px;
+            height: 140px;
+          }
+
+          .converter-container {
+            gap: 10px;
+          }
+
+          .input-group {
+            padding: 5px 8px;
+          }
+
           .amount-input,
           .converted-amount-input {
-            max-width: 55px;
+            font-size: 15px;
+            min-width: 50px;
+          }
+        }
+
+        /* 手机适配 */
+        @media screen and (max-width: 480px) {
+          .card-image.exchange {
+            padding: 0 8px;
+            height: 120px;
+          }
+
+          .converter-container {
+            gap: 8px;
+          }
+
+          .input-group {
+            padding: 4px 6px;
+          }
+
+          .swap-icon {
             font-size: 14px;
+          }
+
+          .amount-input,
+          .converted-amount-input {
+            font-size: 14px;
+            min-width: 40px;
+          }
+        }
+
+        /* 小屏手机适配 */
+        @media screen and (max-width: 360px) {
+          .card-image.exchange {
+            padding: 0 6px;
+            height: 110px;
+          }
+
+          .converter-container {
+            gap: 6px;
+          }
+
+          .input-group {
+            padding: 3px 5px;
+          }
+
+          .swap-icon {
+            font-size: 12px;
+            min-width: 16px;
+          }
+
+          .amount-input,
+          .converted-amount-input {
+            font-size: 13px;
+            min-width: 35px;
+          }
+        }
+
+        /* 超小屏幕适配 */
+        @media screen and (max-width: 320px) {
+          .converter-container {
+            flex-direction: column;
+            gap: 8px;
+          }
+
+          .input-group {
+            width: 100%;
+            justify-content: space-between;
+          }
+
+          .swap-icon {
+            transform: rotate(90deg);
+            font-size: 14px;
+          }
+
+          .card-image.exchange {
+            height: 140px;
           }
         }
       `}</style>
@@ -379,20 +469,22 @@ export const CurrencyConverter = () => {
           display: flex;
           align-items: center;
           margin-right: 8px;
+          flex-shrink: 0;
         }
 
         .currency-selector-button {
           display: flex;
           align-items: center;
-          gap: 6px;
-          padding: 4px 8px;
+          gap: 4px;
+          padding: 3px 6px;
           background: white;
           border: 1px solid #e1e5e9;
           border-radius: 6px;
           cursor: pointer;
           transition: all 0.2s ease;
-          font-size: 14px;
+          font-size: 13px;
           font-weight: 500;
+          white-space: nowrap;
         }
 
         .currency-selector-button:hover {
@@ -401,21 +493,23 @@ export const CurrencyConverter = () => {
         }
 
         .currency-flag {
-          width: 16px;
-          height: 12px;
+          width: 14px;
+          height: 10px;
           border-radius: 2px;
           object-fit: cover;
+          flex-shrink: 0;
         }
 
         .currency-code {
           color: #333;
           font-weight: 600;
+          font-size: 12px;
         }
 
         .currency-arrow {
           color: #666;
-          font-size: 10px;
-          margin-left: 2px;
+          font-size: 8px;
+          margin-left: 1px;
         }
 
         .currency-selector-dropdown {
@@ -432,14 +526,16 @@ export const CurrencyConverter = () => {
           overflow-y: auto;
           margin-top: 4px;
         }
+
         .currency-selector-dropdown::-webkit-scrollbar {
-          display: none; /* Chrome, Safari */
+          display: none;
         }
+
         .currency-option {
           display: flex;
           align-items: center;
-          gap: 8px;
-          padding: 8px 12px;
+          gap: 6px;
+          padding: 6px 10px;
           cursor: pointer;
           transition: background-color 0.2s ease;
           border-bottom: 1px solid #f0f0f0;
@@ -458,10 +554,56 @@ export const CurrencyConverter = () => {
           color: #1976d2;
         }
 
-        .currency-name {
-          font-size: 12px;
-          color: #666;
-          margin-left: auto;
+        /* 移动端货币选择器优化 */
+        @media screen and (max-width: 480px) {
+          .currency-selector {
+            margin-right: 6px;
+          }
+
+          .currency-selector-button {
+            padding: 2px 4px;
+            gap: 3px;
+          }
+
+          .currency-flag {
+            width: 12px;
+            height: 9px;
+          }
+
+          .currency-code {
+            font-size: 11px;
+          }
+
+          .currency-arrow {
+            font-size: 7px;
+          }
+
+          .currency-option {
+            padding: 5px 8px;
+            gap: 5px;
+          }
+        }
+
+        @media screen and (max-width: 360px) {
+          .currency-selector-button {
+            padding: 2px 3px;
+          }
+
+          .currency-code {
+            font-size: 10px;
+          }
+        }
+
+        /* 超小屏幕下隐藏货币代码，只显示国旗 */
+        @media screen and (max-width: 280px) {
+          .currency-code {
+            display: none;
+          }
+
+          .currency-selector-button {
+            gap: 0;
+            padding: 2px;
+          }
         }
       `}</style>
     </>
