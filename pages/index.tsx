@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CurrencyConverter } from "../components/CurrencyConverter";
+import { CurrencyConverter } from "../widgets/CurrencyConverter";
 import { Card } from "../components/Card";
 
 export default function Home() {
