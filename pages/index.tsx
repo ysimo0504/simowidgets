@@ -4,12 +4,14 @@ import { Card } from "../components/Card";
 
 export default function Home() {
   const [isButtonCopied, setIsButtonCopied] = useState(false);
+  const host = "https://widgets.heysimo.com";
 
   const handleCopyClick = () => {
     setIsButtonCopied(true);
     setTimeout(() => {
       setIsButtonCopied(false);
     }, 2000);
+    navigator.clipboard.writeText(`${host}/exchange`);
   };
 
   return (
