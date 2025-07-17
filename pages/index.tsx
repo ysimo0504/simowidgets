@@ -1,6 +1,4 @@
-import { useState } from "react";
-import { CurrencyConverter } from "../widgets/CurrencyConverter";
-import { Card } from "../components/Card";
+import { DynamicCards } from "../components/DynamicCards";
 
 export default function Home() {
   const host = "https://widgets.heysimo.com";
@@ -109,25 +107,7 @@ export default function Home() {
 
       <div className="container">
         <div className="grid">
-          {/* 汇率换算器 */}
-          <Card
-            description="A simple, embeddable currency converter"
-            buttonText="Copy Embed Link"
-            embedUrl={`${host}/exchange`}
-          >
-            <CurrencyConverter />
-          </Card>
-
-          {/* 可以在这里添加更多的 card */}
-          {/* 例如：
-          <Card
-            description="Another widget for your workspace"
-            buttonText="Copy Embed Link"
-            embedUrl={`${host}/another-widget`}
-          >
-            <AnotherWidget />
-          </Card>
-          */}
+          <DynamicCards host={host} />
         </div>
       </div>
 
