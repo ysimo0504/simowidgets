@@ -377,8 +377,8 @@ export const CurrencyConverter = () => {
           background: #f8f8f7;
           border-radius: 10px;
           padding: 6px 10px;
-          flex: 1;
-          min-width: 0;
+          width: 180px;
+          min-width: 180px;
           margin: 0;
         }
 
@@ -427,8 +427,8 @@ export const CurrencyConverter = () => {
         @media screen and (max-width: 768px) {
           .card-image.exchange {
             padding: 20px 12px;
-            min-height: 160px;
-            max-height: 200px;
+            min-height: 120px;
+            max-height: 120px;
           }
 
           .converter-container {
@@ -437,19 +437,9 @@ export const CurrencyConverter = () => {
             max-width: 320px;
           }
 
-          .input-group {
-            width: 100%;
-            padding: 10px 14px;
-          }
-
           .swap-icon {
             transform: rotate(90deg);
             margin: 0;
-          }
-
-          .amount-input,
-          .converted-amount-input {
-            text-align: center;
           }
         }
 
@@ -464,10 +454,6 @@ export const CurrencyConverter = () => {
           .converter-container {
             gap: 14px;
             max-width: 300px;
-          }
-
-          .input-group {
-            padding: 8px 12px;
           }
         }
       `}</style>

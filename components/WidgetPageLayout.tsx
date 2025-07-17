@@ -185,6 +185,9 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
           width: 100%;
           background: ${backgroundColor};
           position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
 
         .widget-page:not(.embedded) {
@@ -195,15 +198,16 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
         .widget-page.embedded {
           min-height: 250px;
           height: auto;
-          padding: 24px;
-          /* 关键：移除所有可能干扰的属性 */
+          padding: 24px 12px;
         }
 
         .widget-main {
           width: 100%;
+          max-width: 100%;
           display: flex;
           align-items: center;
           justify-content: center;
+          flex-direction: column;
         }
 
         .widget-page:not(.embedded) .widget-main {
@@ -220,25 +224,87 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
           width: 100%;
           max-width: ${maxWidth};
           margin: 0 auto;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
 
-        @media (max-width: 768px) {
+        /* 超大屏幕 */
+        @media (min-width: 1200px) {
           .widget-page.embedded {
-            padding: 20px;
+            padding: 32px 20px;
           }
 
           .widget-container {
-            max-width: calc(${maxWidth} * 0.9);
+            max-width: ${maxWidth};
           }
         }
 
-        @media (max-width: 480px) {
+        /* 大屏幕 */
+        @media (min-width: 992px) and (max-width: 1199px) {
           .widget-page.embedded {
-            padding: 16px;
+            padding: 28px 16px;
           }
 
           .widget-container {
-            max-width: calc(${maxWidth} * 0.85);
+            max-width: min(${maxWidth}, 95vw);
+          }
+        }
+
+        /* 平板 */
+        @media (min-width: 768px) and (max-width: 991px) {
+          .widget-page.embedded {
+            padding: 24px 16px;
+          }
+
+          .widget-container {
+            max-width: min(${maxWidth}, 90vw);
+          }
+        }
+
+        /* 大手机 */
+        @media (min-width: 576px) and (max-width: 767px) {
+          .widget-page.embedded {
+            padding: 20px 12px;
+          }
+
+          .widget-container {
+            max-width: min(${maxWidth}, 85vw);
+          }
+        }
+
+        /* 小手机 */
+        @media (max-width: 575px) {
+          .widget-page.embedded {
+            padding: 16px 8px;
+          }
+
+          .widget-container {
+            max-width: min(${maxWidth}, 95vw);
+          }
+        }
+
+        /* 超小屏幕 */
+        @media (max-width: 360px) {
+          .widget-page.embedded {
+            padding: 12px 6px;
+          }
+
+          .widget-container {
+            max-width: min(${maxWidth}, 98vw);
+          }
+        }
+
+        /* 确保在所有情况下都居中 */
+        @media (orientation: landscape) and (max-height: 500px) {
+          .widget-page.embedded {
+            padding: 10px 12px;
+            align-items: flex-start;
+            justify-content: center;
+          }
+
+          .widget-main {
+            padding-top: 20px;
           }
         }
       `}</style>
