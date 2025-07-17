@@ -308,7 +308,6 @@ export const CurrencyConverter = () => {
       <style jsx>{`
         .card-image.exchange {
           width: 100%;
-          /* 移除固定高度，使用自适应 */
           min-height: 120px;
           max-height: 160px;
           display: flex;
@@ -317,7 +316,7 @@ export const CurrencyConverter = () => {
           background: #fff;
           color: #000;
           padding: 16px;
-          margin: 0; /* 确保没有外边距 */
+          margin: 0;
         }
 
         .converter-container {
@@ -327,7 +326,7 @@ export const CurrencyConverter = () => {
           justify-content: center;
           align-items: center;
           gap: 12px;
-          margin: 0; /* 确保没有外边距 */
+          margin: 0;
         }
 
         .input-group {
@@ -338,7 +337,7 @@ export const CurrencyConverter = () => {
           padding: 6px 10px;
           flex: 1;
           min-width: 0;
-          margin: 0; /* 确保没有外边距 */
+          margin: 0;
         }
 
         .swap-icon {
@@ -347,8 +346,9 @@ export const CurrencyConverter = () => {
           flex-shrink: 0;
           min-width: 20px;
           text-align: center;
-          line-height: 1; /* 设置行高为1，避免额外高度 */
+          line-height: 1;
           margin: 0;
+          transition: transform 0.3s ease;
         }
 
         .amount-input,
@@ -365,7 +365,7 @@ export const CurrencyConverter = () => {
           max-width: none;
           margin: 0;
           padding: 0;
-          line-height: 1.2; /* 控制行高 */
+          line-height: 1.2;
         }
 
         .amount-input:focus,
@@ -375,126 +375,57 @@ export const CurrencyConverter = () => {
           border-radius: 4px;
         }
 
-        /* 响应式适配也要修改高度 */
-        @media screen and (max-width: 768px) {
-          .card-image.exchange {
-            padding: 12px;
-            min-height: 100px;
-            max-height: 140px;
-          }
-        }
-
+        /* 手机端 - 垂直布局 */
         @media screen and (max-width: 480px) {
           .card-image.exchange {
-            padding: 8px;
-            min-height: 90px;
-            max-height: 120px;
-          }
-        }
-
-        @media screen and (max-width: 360px) {
-          .card-image.exchange {
-            padding: 6px;
-            min-height: 80px;
-            max-height: 110px;
-          }
-        }
-
-        /* 平板适配 */
-        @media screen and (max-width: 768px) {
-          .card-image.exchange {
-            padding: 0 12px;
-            height: 140px;
+            padding: 20px 12px; /* 增加垂直padding */
+            min-height: 160px; /* 适应垂直布局需要更多高度 */
+            max-height: 200px;
           }
 
           .converter-container {
-            gap: 10px;
-          }
-
-          .input-group {
-            padding: 5px 8px;
-          }
-
-          .amount-input,
-          .converted-amount-input {
-            font-size: 15px;
-            min-width: 50px;
-          }
-        }
-
-        /* 手机适配 */
-        @media screen and (max-width: 480px) {
-          .card-image.exchange {
-            padding: 0 8px;
-            height: 120px;
-          }
-
-          .converter-container {
-            gap: 8px;
-          }
-
-          .input-group {
-            padding: 4px 6px;
-          }
-
-          .swap-icon {
-            font-size: 14px;
-          }
-
-          .amount-input,
-          .converted-amount-input {
-            font-size: 14px;
-            min-width: 40px;
-          }
-        }
-
-        /* 小屏手机适配 */
-        @media screen and (max-width: 360px) {
-          .card-image.exchange {
-            padding: 0 6px;
-            height: 110px;
-          }
-
-          .converter-container {
-            gap: 6px;
-          }
-
-          .input-group {
-            padding: 3px 5px;
-          }
-
-          .swap-icon {
-            font-size: 12px;
-            min-width: 16px;
-          }
-
-          .amount-input,
-          .converted-amount-input {
-            font-size: 13px;
-            min-width: 35px;
-          }
-        }
-
-        /* 超小屏幕适配 */
-        @media screen and (max-width: 320px) {
-          .converter-container {
-            flex-direction: column;
-            gap: 8px;
+            flex-direction: column; /* 改为垂直布局 */
+            gap: 16px; /* 增加垂直间距 */
+            max-width: 320px; /* 稍微增加宽度 */
           }
 
           .input-group {
             width: 100%;
-            justify-content: space-between;
+            padding: 10px 14px; /* 稍微增加padding */
+            /* 元素大小保持不变 */
           }
 
           .swap-icon {
-            transform: rotate(90deg);
-            font-size: 14px;
+            transform: rotate(90deg); /* 旋转为垂直箭头 */
+            margin: 0; /* 重置margin */
           }
 
-          .card-image.exchange {
-            height: 140px;
+          /* 输入框大小保持不变 */
+          .amount-input,
+          .converted-amount-input {
+            text-align: center; /* 居中对齐更适合垂直布局 */
+            /* 字体大小保持16px不变 */
           }
+        }
+
+        /* 小屏手机 - 只调整间距 */
+        @media screen and (max-width: 360px) {
+          .card-image.exchange {
+            padding: 16px 10px;
+            min-height: 150px;
+            max-height: 190px;
+          }
+
+          .converter-container {
+            gap: 14px;
+            max-width: 300px;
+          }
+
+          .input-group {
+            padding: 8px 12px;
+          }
+
+          /* 所有元素大小保持不变 */
         }
       `}</style>
 
@@ -510,14 +441,14 @@ export const CurrencyConverter = () => {
         .currency-selector-button {
           display: flex;
           align-items: center;
-          gap: 4px;
-          padding: 3px 6px;
+          gap: 6px;
+          padding: 4px 8px;
           background: white;
           border: 1px solid #e1e5e9;
           border-radius: 6px;
           cursor: pointer;
           transition: all 0.2s ease;
-          font-size: 13px;
+          font-size: 14px;
           font-weight: 500;
           white-space: nowrap;
         }
@@ -528,8 +459,8 @@ export const CurrencyConverter = () => {
         }
 
         .currency-flag {
-          width: 14px;
-          height: 10px;
+          width: 16px;
+          height: 12px;
           border-radius: 2px;
           object-fit: cover;
           flex-shrink: 0;
@@ -538,13 +469,13 @@ export const CurrencyConverter = () => {
         .currency-code {
           color: #333;
           font-weight: 600;
-          font-size: 12px;
+          font-size: 14px;
         }
 
         .currency-arrow {
           color: #666;
-          font-size: 8px;
-          margin-left: 1px;
+          font-size: 10px;
+          margin-left: 2px;
         }
 
         .currency-selector-dropdown {
@@ -569,8 +500,8 @@ export const CurrencyConverter = () => {
         .currency-option {
           display: flex;
           align-items: center;
-          gap: 6px;
-          padding: 6px 10px;
+          gap: 8px;
+          padding: 8px 12px;
           cursor: pointer;
           transition: background-color 0.2s ease;
           border-bottom: 1px solid #f0f0f0;
@@ -589,55 +520,34 @@ export const CurrencyConverter = () => {
           color: #1976d2;
         }
 
-        /* 移动端货币选择器优化 */
+        /* 手机端 - 保持元素大小不变，只调整间距 */
         @media screen and (max-width: 480px) {
           .currency-selector {
-            margin-right: 6px;
+            margin-right: 8px; /* 保持原始margin */
           }
 
+          /* 货币选择器大小保持不变 */
           .currency-selector-button {
-            padding: 2px 4px;
-            gap: 3px;
+            padding: 4px 8px; /* 保持原始padding */
+            gap: 6px; /* 保持原始gap */
           }
 
           .currency-flag {
-            width: 12px;
-            height: 9px;
+            width: 16px; /* 保持原始大小 */
+            height: 12px;
           }
 
           .currency-code {
-            font-size: 11px;
+            font-size: 14px; /* 保持原始字体大小 */
           }
 
           .currency-arrow {
-            font-size: 7px;
+            font-size: 10px; /* 保持原始大小 */
           }
 
           .currency-option {
-            padding: 5px 8px;
-            gap: 5px;
-          }
-        }
-
-        @media screen and (max-width: 360px) {
-          .currency-selector-button {
-            padding: 2px 3px;
-          }
-
-          .currency-code {
-            font-size: 10px;
-          }
-        }
-
-        /* 超小屏幕下隐藏货币代码，只显示国旗 */
-        @media screen and (max-width: 280px) {
-          .currency-code {
-            display: none;
-          }
-
-          .currency-selector-button {
-            gap: 0;
-            padding: 2px;
+            padding: 8px 12px; /* 保持原始padding */
+            gap: 8px; /* 保持原始gap */
           }
         }
       `}</style>
