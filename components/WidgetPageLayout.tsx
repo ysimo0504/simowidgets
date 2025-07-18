@@ -34,6 +34,7 @@ interface WidgetPageLayoutProps {
   maxWidth?: string; // 自定义最大宽度
   backgroundColor?: string; // 自定义背景色
   className?: string; // 额外的CSS类名
+  draggable?: boolean; // 是否启用拖动功能
 }
 
 export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
@@ -41,8 +42,12 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
   maxWidth = "420px",
   backgroundColor = "white",
   className = "",
+  draggable = true,
 }) => {
   const [isEmbedded, setIsEmbedded] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [position, setPosition] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     // 确保只在浏览器环境执行
@@ -149,6 +154,43 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
     }
   }, []);
 
+  // 🆕 拖动功能实现
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!draggable || !isEmbedded) return;
+
+    setIsDragging(true);
+    setDragOffset({
+      x: e.clientX - position.x,
+      y: e.clientY - position.y,
+    });
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!isDragging || !draggable || !isEmbedded) return;
+
+    setPosition({
+      x: e.clientX - dragOffset.x,
+      y: e.clientY - dragOffset.y,
+    });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  // 🆕 添加全局鼠标事件监听
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+
+      return () => {
+        document.removeEventListener("mousemove", handleMouseMove);
+        document.removeEventListener("mouseup", handleMouseUp);
+      };
+    }
+  }, [isDragging, dragOffset]);
+
   return (
     <>
       {/* 🚀 优化8: 添加必要的meta标签 */}
@@ -159,10 +201,22 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
 
       {/* 🚀 优化9: 移除loading状态，直接同步渲染 */}
       <div
-        className={`widget-page ${className} ${isEmbedded ? "embedded" : ""}`}
+        className={`widget-page ${className} ${isEmbedded ? "embedded" : ""} ${
+          isDragging ? "dragging" : ""
+        }`}
+        style={
+          isEmbedded && draggable
+            ? {
+                transform: `translate(${position.x}px, ${position.y}px)`,
+                cursor: isDragging ? "grabbing" : "grab",
+              }
+            : {}
+        }
       >
         <main className="widget-main">
-          <div className="widget-container">{children}</div>
+          <div className="widget-container" onMouseDown={handleMouseDown}>
+            {children}
+          </div>
         </main>
       </div>
 
@@ -236,11 +290,15 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
           html, body {
             overflow: visible !important;
             height: auto !important;
-            overflow: visible !important;
+            min-height: 100vh;
           }
           
           #__next {
             height: auto !important;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
           }
         `}
       `}</style>
@@ -261,11 +319,26 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
         }
 
         .widget-page.embedded {
-          /* 🚀 优化12: 嵌入模式的正确尺寸设置 */
-          height: auto !important;
-          min-height: fit-content;
+          /* 🚀 优化12: 嵌入模式的完善居中设置 */
+          min-height: 100vh;
+          height: auto;
           padding: 24px 12px;
           overflow: visible;
+
+          /* 🆕 完善的居中配置 */
+          display: flex;
+          align-items: center;
+          justify-content: center;
+
+          /* 🆕 拖动相关样式 */
+          ${draggable ? "cursor: grab;" : ""}
+          user-select: none;
+          transition: transform 0.1s ease-out;
+        }
+
+        .widget-page.embedded.dragging {
+          cursor: grabbing !important;
+          transition: none;
         }
 
         .widget-main {
@@ -295,6 +368,9 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
           display: flex;
           align-items: center;
           justify-content: center;
+
+          /* 🆕 拖动区域样式 */
+          ${draggable && isEmbedded ? "cursor: inherit;" : ""}
         }
 
         /* 响应式设计 */
