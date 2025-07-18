@@ -233,22 +233,14 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
           }
         `
           : `
-          /* 🚀 嵌入模式：允许自适应高度 */
-          html {
-            height: auto !important;
+          html, body {
             overflow: visible !important;
-          }
-          
-          body {
             height: auto !important;
-            min-height: auto !important;
             overflow: visible !important;
           }
           
           #__next {
             height: auto !important;
-            min-height: auto !important;
-            overflow: visible !important;
           }
         `}
       `}</style>
