@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import Head from "next/head";
 
 /**
  * 通用的 Widget 页面布局组件
@@ -42,10 +43,12 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
   className = "",
 }) => {
   const [isEmbedded, setIsEmbedded] = useState(false);
-  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    // 检测嵌入环境
+    // 确保只在浏览器环境执行
+    if (typeof window === "undefined") return;
+
+    // 检测是否在iframe中
     const checkIfEmbedded = () => {
       try {
         return window.self !== window.top;
@@ -58,89 +61,103 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
     setIsEmbedded(embedded);
 
     if (embedded) {
-      // 关键修复：确保页面完全加载后再设置为就绪状态
-      const initEmbed = () => {
-        // 1. 设置基础样式
-        document.documentElement.style.overflow = "visible";
-        document.body.style.overflow = "visible";
-        document.body.style.margin = "0";
-        document.body.style.padding = "0";
+      // 🚀 优化1: 立即设置基础样式，无延迟
+      document.documentElement.style.overflow = "visible";
+      document.documentElement.style.height = "auto";
+      document.body.style.overflow = "visible";
+      document.body.style.height = "auto";
+      document.body.style.margin = "0";
+      document.body.style.padding = "0";
 
-        // 2. 确保内容渲染完成
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            setIsReady(true);
+      // 🚀 优化2: 尺寸通信函数
+      const sendSize = () => {
+        try {
+          const height = Math.max(
+            document.body.scrollHeight,
+            document.body.offsetHeight,
+            document.documentElement.scrollHeight,
+            250
+          );
 
-            // 3. 一次性通知父窗口高度（延迟确保内容已渲染）
-            setTimeout(() => {
-              const height = Math.max(document.body.scrollHeight, 250);
-              try {
-                window.parent.postMessage(
-                  {
-                    type: "setHeight",
-                    height: height,
-                  },
-                  "*"
-                );
-              } catch (e) {
-                // 静默处理
-              }
-            }, 500);
+          // 发送多种格式确保兼容性
+          const messages = [
+            { type: "ready" },
+            { type: "resize", height },
+            { type: "setHeight", height },
+            { frameHeight: height },
+            { height },
+          ];
+
+          messages.forEach((msg) => {
+            window.parent.postMessage(msg, "*");
           });
-        });
+        } catch (e) {
+          console.log("PostMessage failed:", e);
+        }
       };
 
-      // 确保 DOM 准备就绪
-      if (document.readyState === "complete") {
-        initEmbed();
-      } else {
-        window.addEventListener("load", initEmbed);
-        return () => window.removeEventListener("load", initEmbed);
+      // 🚀 优化3: 立即发送ready信号，无延迟
+      sendSize();
+
+      // 🚀 优化4: 监听DOM内容加载完成
+      const handleDOMContentLoaded = () => {
+        sendSize();
+      };
+
+      // 🚀 优化5: 监听窗口大小变化
+      const handleResize = () => {
+        sendSize();
+      };
+
+      // 🚀 优化6: 使用ResizeObserver监听内容变化
+      let resizeObserver: ResizeObserver | null = null;
+      if (window.ResizeObserver) {
+        resizeObserver = new ResizeObserver(() => {
+          sendSize();
+        });
+        resizeObserver.observe(document.body);
       }
-    } else {
-      setIsReady(true);
+
+      // 添加事件监听
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", handleDOMContentLoaded);
+      } else {
+        // DOM已经加载完成
+        handleDOMContentLoaded();
+      }
+
+      window.addEventListener("load", sendSize);
+      window.addEventListener("resize", handleResize);
+
+      // 🚀 优化7: 多次发送确保接收（但间隔更短）
+      setTimeout(sendSize, 50);
+      setTimeout(sendSize, 150);
+      setTimeout(sendSize, 300);
+
+      // 清理函数
+      return () => {
+        document.removeEventListener(
+          "DOMContentLoaded",
+          handleDOMContentLoaded
+        );
+        window.removeEventListener("load", sendSize);
+        window.removeEventListener("resize", handleResize);
+        if (resizeObserver) {
+          resizeObserver.disconnect();
+        }
+      };
     }
   }, []);
 
-  // 如果是嵌入环境但还未就绪，显示加载状态
-  if (isEmbedded && !isReady) {
-    return (
-      <div
-        style={{
-          width: "100%",
-          minHeight: "250px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: backgroundColor,
-        }}
-      >
-        <div
-          style={{
-            width: "20px",
-            height: "20px",
-            border: "2px solid #f3f3f3",
-            borderTop: "2px solid #3498db",
-            borderRadius: "50%",
-            animation: "spin 1s linear infinite",
-          }}
-        ></div>
-        <style jsx>{`
-          @keyframes spin {
-            0% {
-              transform: rotate(0deg);
-            }
-            100% {
-              transform: rotate(360deg);
-            }
-          }
-        `}</style>
-      </div>
-    );
-  }
-
   return (
     <>
+      {/* 🚀 优化8: 添加必要的meta标签 */}
+      <Head>
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
+      </Head>
+
+      {/* 🚀 优化9: 移除loading状态，直接同步渲染 */}
       <div
         className={`widget-page ${className} ${isEmbedded ? "embedded" : ""}`}
       >
@@ -149,40 +166,89 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
         </main>
       </div>
 
+      {/* 🚀 优化10: iframe通信脚本直接嵌入 */}
+      {isEmbedded && (
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                function sendSize() {
+                  try {
+                    const height = Math.max(
+                      document.body.scrollHeight,
+                      document.body.offsetHeight,
+                      document.documentElement.scrollHeight,
+                      250
+                    );
+                    window.parent.postMessage({ type: "resize", height: height }, "*");
+                    window.parent.postMessage({ type: "setHeight", height: height }, "*");
+                    window.parent.postMessage({ frameHeight: height }, "*");
+                  } catch(e) {}
+                }
+                
+                // DOMContentLoaded时立即发送
+                if (document.readyState === 'loading') {
+                  document.addEventListener("DOMContentLoaded", sendSize);
+                } else {
+                  sendSize();
+                }
+                
+                // 页面加载完成后发送
+                window.addEventListener("load", sendSize);
+                window.addEventListener("resize", sendSize);
+                
+                // 立即发送一次
+                sendSize();
+              })();
+            `,
+          }}
+        />
+      )}
+
       <style jsx global>{`
+        /* 🚀 优化11: 正确的响应式CSS配置 */
         * {
           box-sizing: border-box;
+        }
+
+        html {
+          margin: 0;
+          padding: 0;
+          width: 100%;
         }
 
         body {
           margin: 0;
           padding: 0;
+          width: 100%;
           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         }
 
         ${!isEmbedded
           ? `
+          /* 非嵌入模式：使用固定高度 */
           html, body, #__next {
             height: 100%;
             overflow: hidden;
           }
         `
           : `
+          /* 🚀 嵌入模式：允许自适应高度 */
           html {
-            overflow-y: clip !important;
             height: auto !important;
+            overflow: visible !important;
           }
           
           body {
-            overflow-y: auto !important;
             height: auto !important;
             min-height: auto !important;
+            overflow: visible !important;
           }
           
           #__next {
-            overflow: visible !important;
             height: auto !important;
             min-height: auto !important;
+            overflow: visible !important;
           }
         `}
       `}</style>
@@ -203,9 +269,11 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
         }
 
         .widget-page.embedded {
-          min-height: 250px;
-          height: auto;
+          /* 🚀 优化12: 嵌入模式的正确尺寸设置 */
+          height: auto !important;
+          min-height: fit-content;
           padding: 24px 12px;
+          overflow: visible;
         }
 
         .widget-main {
@@ -224,7 +292,8 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
 
         .widget-page.embedded .widget-main {
           padding: 0;
-          min-height: 200px;
+          height: auto;
+          min-height: auto;
         }
 
         .widget-container {
@@ -236,7 +305,7 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
           justify-content: center;
         }
 
-        /* 超大屏幕 */
+        /* 响应式设计 */
         @media (min-width: 1200px) {
           .widget-page.embedded {
             padding: 32px 20px;
@@ -247,19 +316,7 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
           }
         }
 
-        /* 大屏幕 */
-        @media (min-width: 992px) and (max-width: 1199px) {
-          .widget-page.embedded {
-            padding: 28px 16px;
-          }
-
-          .widget-container {
-            max-width: min(${maxWidth}, 95vw);
-          }
-        }
-
-        /* 平板 */
-        @media (min-width: 768px) and (max-width: 991px) {
+        @media (min-width: 768px) and (max-width: 1199px) {
           .widget-page.embedded {
             padding: 24px 16px;
           }
@@ -269,21 +326,9 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
           }
         }
 
-        /* 大手机 */
-        @media (min-width: 576px) and (max-width: 767px) {
+        @media (max-width: 767px) {
           .widget-page.embedded {
-            padding: 20px 12px;
-          }
-
-          .widget-container {
-            max-width: min(${maxWidth}, 85vw);
-          }
-        }
-
-        /* 小手机 */
-        @media (max-width: 575px) {
-          .widget-page.embedded {
-            padding: 16px 8px;
+            padding: 16px 12px;
           }
 
           .widget-container {
@@ -291,27 +336,13 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
           }
         }
 
-        /* 超小屏幕 */
         @media (max-width: 360px) {
           .widget-page.embedded {
-            padding: 12px 6px;
+            padding: 12px 8px;
           }
 
           .widget-container {
             max-width: min(${maxWidth}, 98vw);
-          }
-        }
-
-        /* 确保在所有情况下都居中 */
-        @media (orientation: landscape) and (max-height: 500px) {
-          .widget-page.embedded {
-            padding: 10px 12px;
-            align-items: flex-start;
-            justify-content: center;
-          }
-
-          .widget-main {
-            padding-top: 20px;
           }
         }
       `}</style>
