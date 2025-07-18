@@ -424,7 +424,7 @@ export const CurrencyConverter = () => {
         }
 
         /* 手机端 - 垂直布局 */
-        @media screen and (max-width: 768px) {
+        @media screen and (max-width: 480px) {
           .card-image.exchange {
             padding: 20px 12px;
             min-height: 120px;
