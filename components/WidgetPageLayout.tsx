@@ -3,30 +3,6 @@ import Head from "next/head";
 
 /**
  * 通用的 Widget 页面布局组件
- *
- * 使用示例：
- *
- * // 基础使用
- * <WidgetPageLayout>
- *   <YourWidget />
- * </WidgetPageLayout>
- *
- * // 自定义宽度和背景色
- * <WidgetPageLayout
- *   maxWidth="500px"
- *   backgroundColor="#f5f5f5"
- * >
- *   <YourWidget />
- * </WidgetPageLayout>
- *
- * // 页面示例：
- * export default function Calculator() {
- *   return (
- *     <WidgetPageLayout maxWidth="350px">
- *       <CalculatorWidget />
- *     </WidgetPageLayout>
- *   );
- * }
  */
 
 interface WidgetPageLayoutProps {
@@ -34,7 +10,6 @@ interface WidgetPageLayoutProps {
   maxWidth?: string; // 自定义最大宽度
   backgroundColor?: string; // 自定义背景色
   className?: string; // 额外的CSS类名
-  draggable?: boolean; // 是否启用拖动功能
 }
 
 export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
@@ -42,17 +17,10 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
   maxWidth = "420px",
   backgroundColor = "white",
   className = "",
-  draggable = true,
 }) => {
   const [isEmbedded, setIsEmbedded] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const [position, setPosition] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
-    // 确保只在浏览器环境执行
-    if (typeof window === "undefined") return;
-
     // 检测是否在iframe中
     const checkIfEmbedded = () => {
       try {
@@ -62,205 +30,25 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
       }
     };
 
-    const embedded = checkIfEmbedded();
-    setIsEmbedded(embedded);
-
-    if (embedded) {
-      // 🚀 优化1: 立即设置基础样式，无延迟
-      document.documentElement.style.overflow = "visible";
-      document.documentElement.style.height = "auto";
-      document.body.style.overflow = "visible";
-      document.body.style.height = "auto";
-      document.body.style.margin = "0";
-      document.body.style.padding = "0";
-
-      // 🚀 优化2: 尺寸通信函数
-      const sendSize = () => {
-        try {
-          const height = Math.max(
-            document.body.scrollHeight,
-            document.body.offsetHeight,
-            document.documentElement.scrollHeight,
-            250
-          );
-
-          // 发送多种格式确保兼容性
-          const messages = [
-            { type: "ready" },
-            { type: "resize", height },
-            { type: "setHeight", height },
-            { frameHeight: height },
-            { height },
-          ];
-
-          messages.forEach((msg) => {
-            window.parent.postMessage(msg, "*");
-          });
-        } catch (e) {
-          console.log("PostMessage failed:", e);
-        }
-      };
-
-      // 🚀 优化3: 立即发送ready信号，无延迟
-      sendSize();
-
-      // 🚀 优化4: 监听DOM内容加载完成
-      const handleDOMContentLoaded = () => {
-        sendSize();
-      };
-
-      // 🚀 优化5: 监听窗口大小变化
-      const handleResize = () => {
-        sendSize();
-      };
-
-      // 🚀 优化6: 使用ResizeObserver监听内容变化
-      let resizeObserver: ResizeObserver | null = null;
-      if (window.ResizeObserver) {
-        resizeObserver = new ResizeObserver(() => {
-          sendSize();
-        });
-        resizeObserver.observe(document.body);
-      }
-
-      // 添加事件监听
-      if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", handleDOMContentLoaded);
-      } else {
-        // DOM已经加载完成
-        handleDOMContentLoaded();
-      }
-
-      window.addEventListener("load", sendSize);
-      window.addEventListener("resize", handleResize);
-
-      // 🚀 优化7: 多次发送确保接收（但间隔更短）
-      setTimeout(sendSize, 50);
-      setTimeout(sendSize, 150);
-      setTimeout(sendSize, 300);
-
-      // 清理函数
-      return () => {
-        document.removeEventListener(
-          "DOMContentLoaded",
-          handleDOMContentLoaded
-        );
-        window.removeEventListener("load", sendSize);
-        window.removeEventListener("resize", handleResize);
-        if (resizeObserver) {
-          resizeObserver.disconnect();
-        }
-      };
-    }
+    setIsEmbedded(checkIfEmbedded());
   }, []);
-
-  // 🆕 拖动功能实现
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (!draggable || !isEmbedded) return;
-
-    setIsDragging(true);
-    setDragOffset({
-      x: e.clientX - position.x,
-      y: e.clientY - position.y,
-    });
-  };
-
-  const handleMouseMove = (e: MouseEvent) => {
-    if (!isDragging || !draggable || !isEmbedded) return;
-
-    setPosition({
-      x: e.clientX - dragOffset.x,
-      y: e.clientY - dragOffset.y,
-    });
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
-
-  // 🆕 添加全局鼠标事件监听
-  useEffect(() => {
-    if (isDragging) {
-      document.addEventListener("mousemove", handleMouseMove);
-      document.addEventListener("mouseup", handleMouseUp);
-
-      return () => {
-        document.removeEventListener("mousemove", handleMouseMove);
-        document.removeEventListener("mouseup", handleMouseUp);
-      };
-    }
-  }, [isDragging, dragOffset]);
 
   return (
     <>
-      {/* 🚀 优化8: 添加必要的meta标签 */}
       <Head>
         <meta name="viewport" content="width=device-width,initial-scale=1" />
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
       </Head>
 
-      {/* 🚀 优化9: 移除loading状态，直接同步渲染 */}
       <div
-        className={`widget-page ${className} ${isEmbedded ? "embedded" : ""} ${
-          isDragging ? "dragging" : ""
-        }`}
-        style={
-          isEmbedded && draggable
-            ? {
-                transform: `translate(${position.x}px, ${position.y}px)`,
-                cursor: isDragging ? "grabbing" : "grab",
-              }
-            : {}
-        }
+        className={`widget-page ${className} ${isEmbedded ? "embedded" : ""}`}
       >
         <main className="widget-main">
-          <div className="widget-container" onMouseDown={handleMouseDown}>
-            {children}
-          </div>
+          <div className="widget-container">{children}</div>
         </main>
       </div>
 
-      {/* 🚀 优化10: iframe通信脚本直接嵌入 */}
-      {isEmbedded && (
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                function sendSize() {
-                  try {
-                    const height = Math.max(
-                      document.body.scrollHeight,
-                      document.body.offsetHeight,
-                      document.documentElement.scrollHeight,
-                      250
-                    );
-                    window.parent.postMessage({ type: "resize", height: height }, "*");
-                    window.parent.postMessage({ type: "setHeight", height: height }, "*");
-                    window.parent.postMessage({ frameHeight: height }, "*");
-                  } catch(e) {}
-                }
-                
-                // DOMContentLoaded时立即发送
-                if (document.readyState === 'loading') {
-                  document.addEventListener("DOMContentLoaded", sendSize);
-                } else {
-                  sendSize();
-                }
-                
-                // 页面加载完成后发送
-                window.addEventListener("load", sendSize);
-                window.addEventListener("resize", sendSize);
-                
-                // 立即发送一次
-                sendSize();
-              })();
-            `,
-          }}
-        />
-      )}
-
       <style jsx global>{`
-        /* 🚀 优化11: 正确的响应式CSS配置 */
         * {
           box-sizing: border-box;
         }
@@ -286,21 +74,7 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
             overflow: hidden;
           }
         `
-          : `
-          html, body {
-            overflow: visible !important;
-            height: auto !important;
-            min-height: 100vh;
-          }
-          
-          #__next {
-            height: auto !important;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          }
-        `}
+          : ""}
       `}</style>
 
       <style jsx>{`
@@ -319,26 +93,13 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
         }
 
         .widget-page.embedded {
-          /* 🚀 优化12: 嵌入模式的完善居中设置 */
           min-height: 100vh;
           height: auto;
           padding: 24px 12px;
           overflow: visible;
-
-          /* 🆕 完善的居中配置 */
           display: flex;
           align-items: center;
           justify-content: center;
-
-          /* 🆕 拖动相关样式 */
-          ${draggable ? "cursor: grab;" : ""}
-          user-select: none;
-          transition: transform 0.1s ease-out;
-        }
-
-        .widget-page.embedded.dragging {
-          cursor: grabbing !important;
-          transition: none;
         }
 
         .widget-main {
@@ -368,9 +129,6 @@ export const WidgetPageLayout: React.FC<WidgetPageLayoutProps> = ({
           display: flex;
           align-items: center;
           justify-content: center;
-
-          /* 🆕 拖动区域样式 */
-          ${draggable && isEmbedded ? "cursor: inherit;" : ""}
         }
 
         /* 响应式设计 */
