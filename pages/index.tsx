@@ -38,16 +38,10 @@ export default function Home() {
         }
 
         .logo {
-          width: 28px;
-          height: 28px;
-          background: #000;
-          border-radius: 6px;
+          border-radius: 24px;
           display: flex;
           align-items: center;
           justify-content: center;
-          color: white;
-          font-weight: bold;
-          font-size: 16px;
         }
 
         .brand-name {
@@ -100,7 +94,14 @@ export default function Home() {
 
       <header className="header">
         <div className="header-content">
-          <div className="logo">🧩</div>
+          <div className="logo">
+            <img
+              src="/images/logo.png"
+              alt="Simo Widgets Logo"
+              width={48}
+              height={48}
+            />
+          </div>
           <div className="brand-name">Simo Widgets</div>
         </div>
       </header>
