@@ -1,5 +1,5 @@
 import { DynamicCards } from "../components/DynamicCards";
-
+import { Analytics } from "@vercel/analytics/next";
 export default function Home() {
   const host = "https://widgets.heysimo.com";
 
