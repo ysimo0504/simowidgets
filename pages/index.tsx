@@ -108,6 +108,7 @@ export default function Home() {
 
       <div className="container">
         <div className="grid">
+          <Analytics />
           <DynamicCards host={host} />
         </div>
       </div>
